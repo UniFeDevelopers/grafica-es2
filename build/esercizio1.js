@@ -1,5 +1,22 @@
 'use strict'
 
+var _createClass = (function() {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i]
+      descriptor.enumerable = descriptor.enumerable || false
+      descriptor.configurable = true
+      if ('value' in descriptor) descriptor.writable = true
+      Object.defineProperty(target, descriptor.key, descriptor)
+    }
+  }
+  return function(Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps)
+    if (staticProps) defineProperties(Constructor, staticProps)
+    return Constructor
+  }
+})()
+
 function _toConsumableArray(arr) {
   if (Array.isArray(arr)) {
     for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
@@ -28,50 +45,115 @@ var VSHADER_SOURCE =
 var FSHADER_SOURCE =
   '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n  varying vec4 v_Color;\n  void main() {\n    gl_FragColor = v_Color;\n  }\n'
 
-var Sphere = function Sphere(nDiv, radius) {
-  _classCallCheck(this, Sphere)
+function cross(edge1, edge2) {
+  var n = []
+  /*
+  Nx = UyVz - UzVy
+  Ny = UzVx - UxVz
+  Nz = UxVy - UyVx
+  */
+  n[0] = edge1[1] * edge2[2] - edge1[2] * edge2[1]
+  n[1] = edge1[2] * edge2[0] - edge1[0] * edge2[2]
+  n[2] = edge1[0] * edge2[1] - edge1[1] * edge2[0]
 
-  this.vertices = []
-  this.indices = []
-  this.normals = []
-
-  // Per disegnare una sfera abbiamo bisogno di nDiv^2 vertici.
-  // Il ciclo for più esterno è quello che itera sull'angolo phi, ossia quello che ci fa passare da
-  // una circonferenza alla sua consecutiva.
-  for (var j = 0; j <= nDiv; j++) {
-    // L'angolo phi è compresto tra 0 e Pi
-    var phi = j * Math.PI / nDiv
-
-    // Il ciclo for più interno è quello che itera sull'angolo theta, ossia quello che ci fa passare da un vertice
-    // al suo successivo sulla stessa circonferenza.
-    for (var i = 0; i <= nDiv; i++) {
-      // L'angolo theta è compreso tra 0 e 2 * Pi.
-      var theta = i * 2 * Math.PI / nDiv
-
-      // Il calcolo delle coordinate di un vertice avviene tramite le equazioni parametriche della sfera.
-      var x = Math.cos(phi) * Math.sin(theta)
-      var y = Math.sin(phi) * Math.sin(theta)
-      var z = Math.cos(theta)
-
-      this.vertices.push(radius * x, radius * y, radius * z)
-      this.normals.push(x, y, z)
-    }
-  }
-
-  // Inizializzazione degli indici, il significato dei cicli for è sempre lo stesso.
-  for (var _j = 0; _j < nDiv; _j++) {
-    for (var _i = 0; _i < nDiv; _i++) {
-      // p1 è un punto su di una circonferenza.
-      var p1 = _j * (nDiv + 1) + _i
-      // p2 è il punto sulla circonferenza superiore a quella di p1, nella stessa posizione di p1.
-      var p2 = p1 + (nDiv + 1)
-
-      // I punti vanno uniti come nel cilindro per formare dei quadrati.
-      this.indices.push(p1, p2, p1 + 1)
-      this.indices.push(p1 + 1, p2, p2 + 1)
-    }
-  }
+  return n
 }
+
+function getNormal(v1, v2, v3) {
+  var edge1 = []
+  edge1[0] = v2[0] - v1[0]
+  edge1[1] = v2[1] - v1[1]
+  edge1[2] = v2[2] - v1[2]
+
+  var edge2 = []
+  edge2[0] = v3[0] - v1[0]
+  edge2[1] = v3[1] - v1[1]
+  edge2[2] = v3[2] - v1[2]
+
+  return cross(edge1, edge2)
+}
+
+var Sphere = (function() {
+  _createClass(Sphere, [
+    {
+      key: 'getVertex',
+      value: function getVertex(idx) {
+        //Dato un indice ritorna il vertice.
+        return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
+      },
+    },
+    {
+      key: 'addNormal',
+      value: function addNormal(idx1, idx2, idx3) {
+        //Array di 3 componenti.
+        var normal = getNormal(this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3))
+
+        this.normals[3 * idx1] += normal[0]
+        this.normals[3 * idx1 + 1] += normal[1]
+        this.normals[3 * idx1 + 2] += normal[2]
+
+        this.normals[3 * idx2] += normal[0]
+        this.normals[3 * idx2 + 1] += normal[1]
+        this.normals[3 * idx2 + 2] += normal[2]
+
+        this.normals[3 * idx3] += normal[0]
+        this.normals[3 * idx3 + 1] += normal[1]
+        this.normals[3 * idx3 + 2] += normal[2]
+      },
+    },
+  ])
+
+  function Sphere(nDiv, radius) {
+    _classCallCheck(this, Sphere)
+
+    this.vertices = []
+    this.indices = []
+    this.normals = []
+
+    // Per disegnare una sfera abbiamo bisogno di nDiv^2 vertici.
+    // Il ciclo for più esterno è quello che itera sull'angolo phi, ossia quello che ci fa passare da
+    // una circonferenza alla sua consecutiva.
+    for (var j = 0; j <= nDiv; j++) {
+      // L'angolo phi è compresto tra 0 e Pi
+      var phi = j * Math.PI / nDiv
+
+      // Il ciclo for più interno è quello che itera sull'angolo theta, ossia quello che ci fa passare da un vertice
+      // al suo successivo sulla stessa circonferenza.
+      for (var i = 0; i <= nDiv; i++) {
+        // L'angolo theta è compreso tra 0 e 2 * Pi.
+        var theta = i * 2 * Math.PI / nDiv
+
+        // Il calcolo delle coordinate di un vertice avviene tramite le equazioni parametriche della sfera.
+        var x = Math.cos(phi) * Math.sin(theta)
+        var y = Math.sin(phi) * Math.sin(theta)
+        var z = Math.cos(theta)
+
+        this.vertices.push(radius * x, radius * y, radius * z)
+        // Inizializzo tutte le normali a 0.
+        this.normals.push(0.0, 0.0, 0.0)
+      }
+    }
+
+    // Inizializzazione degli indici, il significato dei cicli for è sempre lo stesso.
+    for (var _j = 0; _j < nDiv; _j++) {
+      for (var _i = 0; _i < nDiv; _i++) {
+        // p1 è un punto su di una circonferenza.
+        var p1 = _j * (nDiv + 1) + _i
+        // p2 è il punto sulla circonferenza superiore a quella di p1, nella stessa posizione di p1.
+        var p2 = p1 + (nDiv + 1)
+
+        // I punti vanno uniti come nel cilindro per formare dei quadrati.
+        this.indices.push(p1, p2, p1 + 1)
+        this.addNormal(p1, p2, p1 + 1)
+
+        this.indices.push(p1 + 1, p2, p2 + 1)
+        this.addNormal(p1 + 1, p2, p2 + 1)
+      }
+    }
+  }
+
+  return Sphere
+})()
 
 function main() {
   // Retrieve <canvas> element
