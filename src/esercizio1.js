@@ -213,6 +213,24 @@ function main() {
       specular: [0.633, 0.727811, 0.633],
       shiness: 0.6,
     },
+    bronze: {
+      ambient: [0.2125, 0.1275, 0.054],
+      diffuse: [0.714, 0.4284, 0.18144],
+      specular: [0.393548, 0.271906, 0.166721],
+      shiness: 0.2,
+    },
+    jade: {
+      ambient: [0.135, 0.2225, 0.1575],
+      diffuse: [0.54, 0.89, 0.63],
+      specular: [0.316228, 0.316228, 0.316228],
+      shiness: 0.1,
+    },
+    gold: {
+      ambient: [0.24725, 0.1995, 0.0745],
+      diffuse: [0.75164, 0.60648, 0.22648],
+      specular: [0.628281, 0.555802, 0.366065],
+      shiness: 0.4,
+    },
   }
 
   const setMaterial = material => {
@@ -230,7 +248,7 @@ function main() {
   gui.add(materiali, 'brass').onFinishChange(function(value) {
     // Fires when a controller loses focus.
     if (value == true) {
-      for (let i of materiali) materiali[i] = false
+      for (let i in materiali) materiali[i] = false
       materiali.brass = true
       console.log('brass')
 
@@ -264,7 +282,7 @@ function main() {
       materiali.bronze = true
       console.log('bronze')
 
-      setMaterial(materialData.emerald)
+      setMaterial(materialData.bronze)
     }
 
     // Iterate over all controllers
@@ -279,7 +297,7 @@ function main() {
       materiali.jade = true
       console.log('jade')
 
-      setMaterial(materialData.emerald)
+      setMaterial(materialData.jade)
     }
 
     // Iterate over all controllers
@@ -294,7 +312,7 @@ function main() {
       materiali.gold = true
       console.log('gold')
 
-      setMaterial(materialData.emerald)
+      setMaterial(materialData.gold)
     }
 
     // Iterate over all controllers

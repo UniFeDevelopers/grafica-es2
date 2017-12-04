@@ -176,6 +176,24 @@ function main() {
       specular: [0.633, 0.727811, 0.633],
       shiness: 0.6,
     },
+    bronze: {
+      ambient: [0.2125, 0.1275, 0.054],
+      diffuse: [0.714, 0.4284, 0.18144],
+      specular: [0.393548, 0.271906, 0.166721],
+      shiness: 0.2,
+    },
+    jade: {
+      ambient: [0.135, 0.2225, 0.1575],
+      diffuse: [0.54, 0.89, 0.63],
+      specular: [0.316228, 0.316228, 0.316228],
+      shiness: 0.1,
+    },
+    gold: {
+      ambient: [0.24725, 0.1995, 0.0745],
+      diffuse: [0.75164, 0.60648, 0.22648],
+      specular: [0.628281, 0.555802, 0.366065],
+      shiness: 0.4,
+    },
   }
 
   var setMaterial = function setMaterial(material) {
@@ -193,38 +211,55 @@ function main() {
   gui.add(materiali, 'brass').onFinishChange(function(value) {
     // Fires when a controller loses focus.
     if (value == true) {
-      var _iteratorNormalCompletion = true
-      var _didIteratorError = false
-      var _iteratorError = undefined
-
-      try {
-        for (
-          var _iterator = materiali[Symbol.iterator](), _step;
-          !(_iteratorNormalCompletion = (_step = _iterator.next()).done);
-          _iteratorNormalCompletion = true
-        ) {
-          var i = _step.value
-          materiali[i] = false
-        }
-      } catch (err) {
-        _didIteratorError = true
-        _iteratorError = err
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return()
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError
-          }
-        }
+      for (var i in materiali) {
+        materiali[i] = false
       }
-
       materiali.brass = true
       console.log('brass')
 
       setMaterial(materialData.brass)
+    }
+
+    // Iterate over all controllers
+    var _iteratorNormalCompletion = true
+    var _didIteratorError = false
+    var _iteratorError = undefined
+
+    try {
+      for (
+        var _iterator = gui.__controllers[Symbol.iterator](), _step;
+        !(_iteratorNormalCompletion = (_step = _iterator.next()).done);
+        _iteratorNormalCompletion = true
+      ) {
+        var ctrl = _step.value
+
+        ctrl.updateDisplay()
+      }
+    } catch (err) {
+      _didIteratorError = true
+      _iteratorError = err
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return()
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError
+        }
+      }
+    }
+  })
+  gui.add(materiali, 'emerald').onFinishChange(function(value) {
+    // Fires when a controller loses focus.
+    if (value == true) {
+      for (var i in materiali) {
+        materiali[i] = false
+      }
+      materiali.emerald = true
+      console.log('emerald')
+
+      setMaterial(materialData.emerald)
     }
 
     // Iterate over all controllers
@@ -257,16 +292,16 @@ function main() {
       }
     }
   })
-  gui.add(materiali, 'emerald').onFinishChange(function(value) {
+  gui.add(materiali, 'bronze').onFinishChange(function(value) {
     // Fires when a controller loses focus.
     if (value == true) {
       for (var i in materiali) {
         materiali[i] = false
       }
-      materiali.emerald = true
-      console.log('emerald')
+      materiali.bronze = true
+      console.log('bronze')
 
-      setMaterial(materialData.emerald)
+      setMaterial(materialData.bronze)
     }
 
     // Iterate over all controllers
@@ -299,16 +334,16 @@ function main() {
       }
     }
   })
-  gui.add(materiali, 'bronze').onFinishChange(function(value) {
+  gui.add(materiali, 'jade').onFinishChange(function(value) {
     // Fires when a controller loses focus.
     if (value == true) {
       for (var i in materiali) {
         materiali[i] = false
       }
-      materiali.bronze = true
-      console.log('bronze')
+      materiali.jade = true
+      console.log('jade')
 
-      setMaterial(materialData.emerald)
+      setMaterial(materialData.jade)
     }
 
     // Iterate over all controllers
@@ -341,16 +376,16 @@ function main() {
       }
     }
   })
-  gui.add(materiali, 'jade').onFinishChange(function(value) {
+  gui.add(materiali, 'gold').onFinishChange(function(value) {
     // Fires when a controller loses focus.
     if (value == true) {
       for (var i in materiali) {
         materiali[i] = false
       }
-      materiali.jade = true
-      console.log('jade')
+      materiali.gold = true
+      console.log('gold')
 
-      setMaterial(materialData.emerald)
+      setMaterial(materialData.gold)
     }
 
     // Iterate over all controllers
@@ -379,48 +414,6 @@ function main() {
       } finally {
         if (_didIteratorError5) {
           throw _iteratorError5
-        }
-      }
-    }
-  })
-  gui.add(materiali, 'gold').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
-    if (value == true) {
-      for (var i in materiali) {
-        materiali[i] = false
-      }
-      materiali.gold = true
-      console.log('gold')
-
-      setMaterial(materialData.emerald)
-    }
-
-    // Iterate over all controllers
-    var _iteratorNormalCompletion6 = true
-    var _didIteratorError6 = false
-    var _iteratorError6 = undefined
-
-    try {
-      for (
-        var _iterator6 = gui.__controllers[Symbol.iterator](), _step6;
-        !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done);
-        _iteratorNormalCompletion6 = true
-      ) {
-        var ctrl = _step6.value
-
-        ctrl.updateDisplay()
-      }
-    } catch (err) {
-      _didIteratorError6 = true
-      _iteratorError6 = err
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion6 && _iterator6.return) {
-          _iterator6.return()
-        }
-      } finally {
-        if (_didIteratorError6) {
-          throw _iteratorError6
         }
       }
     }
