@@ -22,68 +22,11 @@ function _classCallCheck(instance, Constructor) {
 // GDD - 2017
 // Vertex shader program
 var VSHADER_SOURCE =
-  'attribute vec4 a_Position;\n' +
-  'attribute vec4 a_Normal;\n' +
-  'uniform mat4 u_MvpMatrix;\n' +
-  'uniform mat4 u_ModelMatrix;\n' + // Model matrix
-  'uniform mat4 u_NormalMatrix;\n' + // Transformation matrix of the normal
-  'uniform vec3 u_LightColor;\n' + // Light color
-  'uniform vec3 u_LightPosition;\n' + // Position of the light source
-  'uniform vec3 u_AmbientLight;\n' + // Ambient light color
-  'uniform vec3 u_DiffuseMat;\n' + // Diffuse material color
-  'uniform vec3 u_SpecularMat;\n' + // Specular material color
-  'uniform float u_Shininess  ;\n' + // Specular material shininess
-  'uniform vec3 u_AmbientMat;\n' + // Ambient material color
-  'uniform vec3 u_CameraPos;\n' + // Camera Position
-  'varying vec4 v_Color;\n' +
-  'void main() {\n' +
-  '  gl_Position = u_MvpMatrix * a_Position;\n' +
-  // Calculate a normal to be fit with a model matrix, and make it 1.0 in length
-  '  vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));\n' +
-  // Calculate world coordinate of vertex
-  '  vec4 vertexPosition = u_ModelMatrix * a_Position;\n' +
-  '  float d = length(u_LightPosition - vec3(vertexPosition));\n' +
-  '  float atten = 1.0/(0.01 * d*d);\n' +
-  // Calculate the light direction and make it 1.0 in length
-  '  vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));\n' +
-  // The dot product of the light direction and the normal
-  '  float nDotL = max(dot(lightDirection, normal), 0.0);\n' +
-  // Calculate the color due to diffuse reflection
-  '  vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;\n' +
-  // Calculate the color due to ambient reflection
-  '  vec3 ambient = u_AmbientLight * u_AmbientMat;\n' +
-  '  vec3 specular = vec3(0.0,0.0,0.0);\n' +
-  '  if(nDotL > 0.0) {\n' +
-  // Calculate specular component
-  '       vec3 h = normalize(normalize(u_CameraPos - vec3(vertexPosition)) + lightDirection);\n' +
-  '       float hDotn  = max(dot(h, normal), 0.0);\n' +
-  '       specular = u_LightColor * u_SpecularMat * pow(hDotn,u_Shininess);\n' +
-  '  }\n' +
-  // Add the surface colors due to diffuse reflection and ambient reflection
-  '  v_Color = vec4(atten *(diffuse + specular)  + ambient, 1.0);\n' +
-  '}\n'
+  '\n  attribute vec4 a_Position;\n  attribute vec4 a_Normal;\n  uniform mat4 u_MvpMatrix;\n  uniform mat4 u_ModelMatrix; // Model matrix\n  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal\n  uniform vec3 u_LightColor; // Light color\n  uniform vec3 u_LightPosition; // Position of the light source\n  uniform vec3 u_AmbientLight; // Ambient light color\n  uniform vec3 u_DiffuseMat; // Diffuse material color\n  uniform vec3 u_SpecularMat; // Specular material color\n  uniform float u_Shininess  ; // Specular material shininess\n  uniform vec3 u_AmbientMat; // Ambient material color\n  uniform vec3 u_CameraPos; // Camera Position\n  varying vec4 v_Color;\n\n  void main() {\n    gl_Position = u_MvpMatrix * a_Position;\n\n    // Calculate a normal to be fit with a model matrix, and make it 1.0 in length\n    vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));\n\n    // Calculate world coordinate of vertex\n    vec4 vertexPosition = u_ModelMatrix * a_Position;\n    float d = length(u_LightPosition - vec3(vertexPosition));\n    float atten = 1.0/(0.01 * d*d);\n\n    // Calculate the light direction and make it 1.0 in length\n    vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));\n\n    // The dot product of the light direction and the normal\n    float nDotL = max(dot(lightDirection, normal), 0.0);\n\n    // Calculate the color due to diffuse reflection\n    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;\n\n    // Calculate the color due to ambient reflection\n    vec3 ambient = u_AmbientLight * u_AmbientMat;\n    vec3 specular = vec3(0.0,0.0,0.0);\n\n    if(nDotL > 0.0) {\n      // Calculate specular component\n      vec3 h = normalize(normalize(u_CameraPos - vec3(vertexPosition)) + lightDirection);\n      float hDotn  = max(dot(h, normal), 0.0);\n      specular = u_LightColor * u_SpecularMat * pow(hDotn,u_Shininess);\n    }\n\n    // Add the surface colors due to diffuse reflection and ambient reflection\n    v_Color = vec4(atten *(diffuse + specular)  + ambient, 1.0);\n  }\n'
 
 // Fragment shader program
 var FSHADER_SOURCE =
-  '#ifdef GL_ES\n' +
-  'precision mediump float;\n' +
-  '#endif\n' +
-  'varying vec4 v_Color;\n' +
-  'void main() {\n' +
-  '  gl_FragColor = v_Color;\n' +
-  '}\n'
-
-var getNormal = function getNormal(vertices, a, b, c) {
-  var n = []
-  var u = vertices[b] - vertices[a]
-  var v = vertices[c] - vertices[b]
-
-  n.push(u[1] * v[2] - u[2] * v[1])
-  n.push(u[2] * v[0] - u[0] * v[2])
-  n.push(u[0] * v[1] - u[1] * v[0])
-
-  return n
-}
+  '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n  varying vec4 v_Color;\n  void main() {\n    gl_FragColor = v_Color;\n  }\n'
 
 var Sphere = function Sphere(nDiv, radius) {
   _classCallCheck(this, Sphere)
@@ -170,6 +113,7 @@ function main() {
   var u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess')
   var u_AmbientMat = gl.getUniformLocation(gl.program, 'u_AmbientMat')
   var u_CameraPos = gl.getUniformLocation(gl.program, 'u_CameraPos')
+
   if (
     !u_ModelMatrix ||
     !u_MvpMatrix ||
@@ -186,6 +130,7 @@ function main() {
     console.log('Failed to get the storage location')
     return
   }
+
   // ******************************************************************************************
   // Set the Specular and Diffuse light color
   gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0)
@@ -204,13 +149,17 @@ function main() {
   // Set the specular material
   gl.uniform1f(u_Shininess, 0.21794872 * 128)
 
-  var cameraPos = [1, 3, 8] // camera position
+  // camera position
+  var cameraPos = [1, 3, 8]
+
   // Set the camera position
-  gl.uniform3f(u_CameraPos, cameraPos[0], cameraPos[1], cameraPos[2])
+  gl.uniform3f.apply(gl, [u_CameraPos].concat(cameraPos))
+
   //********************************************************************************************
-  //*********************************************************************
+
   // creo una GUI con dat.gui
   var gui = new dat.GUI()
+
   // checkbox geometry
   var materiali = { brass: true, emerald: false, bronze: false, jade: false, gold: false }
 
@@ -244,21 +193,71 @@ function main() {
   gui.add(materiali, 'brass').onFinishChange(function(value) {
     // Fires when a controller loses focus.
     if (value == true) {
-      for (var i in materiali) {
-        materiali[i] = false
+      var _iteratorNormalCompletion = true
+      var _didIteratorError = false
+      var _iteratorError = undefined
+
+      try {
+        for (
+          var _iterator = materiali[Symbol.iterator](), _step;
+          !(_iteratorNormalCompletion = (_step = _iterator.next()).done);
+          _iteratorNormalCompletion = true
+        ) {
+          var i = _step.value
+          materiali[i] = false
+        }
+      } catch (err) {
+        _didIteratorError = true
+        _iteratorError = err
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return()
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError
+          }
+        }
       }
+
       materiali.brass = true
       console.log('brass')
 
       setMaterial(materialData.brass)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    var _iteratorNormalCompletion2 = true
+    var _didIteratorError2 = false
+    var _iteratorError2 = undefined
+
+    try {
+      for (
+        var _iterator2 = gui.__controllers[Symbol.iterator](), _step2;
+        !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done);
+        _iteratorNormalCompletion2 = true
+      ) {
+        var ctrl = _step2.value
+
+        ctrl.updateDisplay()
+      }
+    } catch (err) {
+      _didIteratorError2 = true
+      _iteratorError2 = err
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return()
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2
+        }
+      }
     }
   })
   gui.add(materiali, 'emerald').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
     // Fires when a controller loses focus.
     if (value == true) {
       for (var i in materiali) {
@@ -269,13 +268,38 @@ function main() {
 
       setMaterial(materialData.emerald)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    var _iteratorNormalCompletion3 = true
+    var _didIteratorError3 = false
+    var _iteratorError3 = undefined
+
+    try {
+      for (
+        var _iterator3 = gui.__controllers[Symbol.iterator](), _step3;
+        !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done);
+        _iteratorNormalCompletion3 = true
+      ) {
+        var ctrl = _step3.value
+
+        ctrl.updateDisplay()
+      }
+    } catch (err) {
+      _didIteratorError3 = true
+      _iteratorError3 = err
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return()
+        }
+      } finally {
+        if (_didIteratorError3) {
+          throw _iteratorError3
+        }
+      }
     }
   })
   gui.add(materiali, 'bronze').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
     // Fires when a controller loses focus.
     if (value == true) {
       for (var i in materiali) {
@@ -283,14 +307,41 @@ function main() {
       }
       materiali.bronze = true
       console.log('bronze')
+
+      setMaterial(materialData.emerald)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    var _iteratorNormalCompletion4 = true
+    var _didIteratorError4 = false
+    var _iteratorError4 = undefined
+
+    try {
+      for (
+        var _iterator4 = gui.__controllers[Symbol.iterator](), _step4;
+        !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done);
+        _iteratorNormalCompletion4 = true
+      ) {
+        var ctrl = _step4.value
+
+        ctrl.updateDisplay()
+      }
+    } catch (err) {
+      _didIteratorError4 = true
+      _iteratorError4 = err
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+          _iterator4.return()
+        }
+      } finally {
+        if (_didIteratorError4) {
+          throw _iteratorError4
+        }
+      }
     }
   })
   gui.add(materiali, 'jade').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
     // Fires when a controller loses focus.
     if (value == true) {
       for (var i in materiali) {
@@ -298,14 +349,41 @@ function main() {
       }
       materiali.jade = true
       console.log('jade')
+
+      setMaterial(materialData.emerald)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    var _iteratorNormalCompletion5 = true
+    var _didIteratorError5 = false
+    var _iteratorError5 = undefined
+
+    try {
+      for (
+        var _iterator5 = gui.__controllers[Symbol.iterator](), _step5;
+        !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done);
+        _iteratorNormalCompletion5 = true
+      ) {
+        var ctrl = _step5.value
+
+        ctrl.updateDisplay()
+      }
+    } catch (err) {
+      _didIteratorError5 = true
+      _iteratorError5 = err
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+          _iterator5.return()
+        }
+      } finally {
+        if (_didIteratorError5) {
+          throw _iteratorError5
+        }
+      }
     }
   })
   gui.add(materiali, 'gold').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
     // Fires when a controller loses focus.
     if (value == true) {
       for (var i in materiali) {
@@ -313,10 +391,38 @@ function main() {
       }
       materiali.gold = true
       console.log('gold')
+
+      setMaterial(materialData.emerald)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    var _iteratorNormalCompletion6 = true
+    var _didIteratorError6 = false
+    var _iteratorError6 = undefined
+
+    try {
+      for (
+        var _iterator6 = gui.__controllers[Symbol.iterator](), _step6;
+        !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done);
+        _iteratorNormalCompletion6 = true
+      ) {
+        var ctrl = _step6.value
+
+        ctrl.updateDisplay()
+      }
+    } catch (err) {
+      _didIteratorError6 = true
+      _iteratorError6 = err
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion6 && _iterator6.return) {
+          _iterator6.return()
+        }
+      } finally {
+        if (_didIteratorError6) {
+          throw _iteratorError6
+        }
+      }
     }
   })
 
@@ -373,7 +479,7 @@ function main() {
   tick()
 }
 
-function initVertexBuffersCube(gl) {
+var initVertexBuffersCube = function initVertexBuffersCube(gl) {
   // create the shape
   var shape = new Sphere(100, 1)
 
@@ -398,16 +504,18 @@ function initVertexBuffersCube(gl) {
   return shape.indices.length
 }
 
-function initArrayBuffer(gl, attribute, data, type, num) {
+var initArrayBuffer = function initArrayBuffer(gl, attribute, data, type, num) {
   // Create a buffer object
   var buffer = gl.createBuffer()
   if (!buffer) {
     console.log('Failed to create the buffer object')
     return false
   }
+
   // Write date into the buffer object
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
   gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW)
+
   // Assign the buffer object to the attribute variable
   var a_attribute = gl.getAttribLocation(gl.program, attribute)
   if (a_attribute < 0) {
@@ -422,8 +530,10 @@ function initArrayBuffer(gl, attribute, data, type, num) {
 
   return true
 }
+
 // Rotation angle (degrees/second)
 var ANGLE_STEP = 20.0
+
 // Last time that this function was called
 var g_last = Date.now()
 function animate(angle) {
@@ -431,6 +541,7 @@ function animate(angle) {
   var now = Date.now()
   var elapsed = now - g_last
   g_last = now
+
   // Update the current rotation angle (adjusted by the elapsed time)
   var newAngle = angle + ANGLE_STEP * elapsed / 1000.0
   return (newAngle %= 360)

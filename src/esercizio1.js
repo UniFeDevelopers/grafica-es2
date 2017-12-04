@@ -2,69 +2,68 @@
 // implementazione modello di blinn phong
 // GDD - 2017
 // Vertex shader program
-var VSHADER_SOURCE =
-  'attribute vec4 a_Position;\n' +
-  'attribute vec4 a_Normal;\n' +
-  'uniform mat4 u_MvpMatrix;\n' +
-  'uniform mat4 u_ModelMatrix;\n' + // Model matrix
-  'uniform mat4 u_NormalMatrix;\n' + // Transformation matrix of the normal
-  'uniform vec3 u_LightColor;\n' + // Light color
-  'uniform vec3 u_LightPosition;\n' + // Position of the light source
-  'uniform vec3 u_AmbientLight;\n' + // Ambient light color
-  'uniform vec3 u_DiffuseMat;\n' + // Diffuse material color
-  'uniform vec3 u_SpecularMat;\n' + // Specular material color
-  'uniform float u_Shininess  ;\n' + // Specular material shininess
-  'uniform vec3 u_AmbientMat;\n' + // Ambient material color
-  'uniform vec3 u_CameraPos;\n' + // Camera Position
-  'varying vec4 v_Color;\n' +
-  'void main() {\n' +
-  '  gl_Position = u_MvpMatrix * a_Position;\n' +
-  // Calculate a normal to be fit with a model matrix, and make it 1.0 in length
-  '  vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));\n' +
-  // Calculate world coordinate of vertex
-  '  vec4 vertexPosition = u_ModelMatrix * a_Position;\n' +
-  '  float d = length(u_LightPosition - vec3(vertexPosition));\n' +
-  '  float atten = 1.0/(0.01 * d*d);\n' +
-  // Calculate the light direction and make it 1.0 in length
-  '  vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));\n' +
-  // The dot product of the light direction and the normal
-  '  float nDotL = max(dot(lightDirection, normal), 0.0);\n' +
-  // Calculate the color due to diffuse reflection
-  '  vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;\n' +
-  // Calculate the color due to ambient reflection
-  '  vec3 ambient = u_AmbientLight * u_AmbientMat;\n' +
-  '  vec3 specular = vec3(0.0,0.0,0.0);\n' +
-  '  if(nDotL > 0.0) {\n' +
-  // Calculate specular component
-  '       vec3 h = normalize(normalize(u_CameraPos - vec3(vertexPosition)) + lightDirection);\n' +
-  '       float hDotn  = max(dot(h, normal), 0.0);\n' +
-  '       specular = u_LightColor * u_SpecularMat * pow(hDotn,u_Shininess);\n' +
-  '  }\n' +
-  // Add the surface colors due to diffuse reflection and ambient reflection
-  '  v_Color = vec4(atten *(diffuse + specular)  + ambient, 1.0);\n' +
-  '}\n'
+const VSHADER_SOURCE = `
+  attribute vec4 a_Position;
+  attribute vec4 a_Normal;
+  uniform mat4 u_MvpMatrix;
+  uniform mat4 u_ModelMatrix; // Model matrix
+  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal
+  uniform vec3 u_LightColor; // Light color
+  uniform vec3 u_LightPosition; // Position of the light source
+  uniform vec3 u_AmbientLight; // Ambient light color
+  uniform vec3 u_DiffuseMat; // Diffuse material color
+  uniform vec3 u_SpecularMat; // Specular material color
+  uniform float u_Shininess  ; // Specular material shininess
+  uniform vec3 u_AmbientMat; // Ambient material color
+  uniform vec3 u_CameraPos; // Camera Position
+  varying vec4 v_Color;
+
+  void main() {
+    gl_Position = u_MvpMatrix * a_Position;
+
+    // Calculate a normal to be fit with a model matrix, and make it 1.0 in length
+    vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));
+
+    // Calculate world coordinate of vertex
+    vec4 vertexPosition = u_ModelMatrix * a_Position;
+    float d = length(u_LightPosition - vec3(vertexPosition));
+    float atten = 1.0/(0.01 * d*d);
+
+    // Calculate the light direction and make it 1.0 in length
+    vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));
+
+    // The dot product of the light direction and the normal
+    float nDotL = max(dot(lightDirection, normal), 0.0);
+
+    // Calculate the color due to diffuse reflection
+    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;
+
+    // Calculate the color due to ambient reflection
+    vec3 ambient = u_AmbientLight * u_AmbientMat;
+    vec3 specular = vec3(0.0,0.0,0.0);
+
+    if(nDotL > 0.0) {
+      // Calculate specular component
+      vec3 h = normalize(normalize(u_CameraPos - vec3(vertexPosition)) + lightDirection);
+      float hDotn  = max(dot(h, normal), 0.0);
+      specular = u_LightColor * u_SpecularMat * pow(hDotn,u_Shininess);
+    }
+
+    // Add the surface colors due to diffuse reflection and ambient reflection
+    v_Color = vec4(atten *(diffuse + specular)  + ambient, 1.0);
+  }
+`
 
 // Fragment shader program
-var FSHADER_SOURCE =
-  '#ifdef GL_ES\n' +
-  'precision mediump float;\n' +
-  '#endif\n' +
-  'varying vec4 v_Color;\n' +
-  'void main() {\n' +
-  '  gl_FragColor = v_Color;\n' +
-  '}\n'
-
-const getNormal = (vertices, a, b, c) => {
-  let n = []
-  let u = vertices[b] - vertices[a]
-  let v = vertices[c] - vertices[b]
-
-  n.push(u[1] * v[2] - u[2] * v[1])
-  n.push(u[2] * v[0] - u[0] * v[2])
-  n.push(u[0] * v[1] - u[1] * v[0])
-
-  return n
-}
+const FSHADER_SOURCE = `
+  #ifdef GL_ES
+  precision mediump float;
+  #endif
+  varying vec4 v_Color;
+  void main() {
+    gl_FragColor = v_Color;
+  }
+`
 
 class Sphere {
   constructor(nDiv, radius) {
@@ -113,10 +112,10 @@ class Sphere {
 
 function main() {
   // Retrieve <canvas> element
-  var canvas = document.getElementById('webgl')
+  const canvas = document.getElementById('webgl')
 
   // Get the rendering context for WebGL
-  var gl = getWebGLContext(canvas)
+  const gl = getWebGLContext(canvas)
   if (!gl) {
     console.log('Failed to get the rendering context for WebGL')
     return
@@ -129,7 +128,7 @@ function main() {
   }
 
   // Set the vertex coordinates, the color and the normal
-  var n = initVertexBuffersCube(gl)
+  const n = initVertexBuffersCube(gl)
   if (n < 0) {
     console.log('Failed to set the vertex information')
     return
@@ -140,17 +139,18 @@ function main() {
   gl.enable(gl.DEPTH_TEST)
 
   // Get the storage locations of uniform variables and so on
-  var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix')
-  var u_MvpMatrix = gl.getUniformLocation(gl.program, 'u_MvpMatrix')
-  var u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix')
-  var u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor')
-  var u_LightPosition = gl.getUniformLocation(gl.program, 'u_LightPosition')
-  var u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight')
-  var u_DiffuseMat = gl.getUniformLocation(gl.program, 'u_DiffuseMat')
-  var u_SpecularMat = gl.getUniformLocation(gl.program, 'u_SpecularMat')
-  var u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess')
-  var u_AmbientMat = gl.getUniformLocation(gl.program, 'u_AmbientMat')
-  var u_CameraPos = gl.getUniformLocation(gl.program, 'u_CameraPos')
+  const u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix')
+  const u_MvpMatrix = gl.getUniformLocation(gl.program, 'u_MvpMatrix')
+  const u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix')
+  const u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor')
+  const u_LightPosition = gl.getUniformLocation(gl.program, 'u_LightPosition')
+  const u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight')
+  const u_DiffuseMat = gl.getUniformLocation(gl.program, 'u_DiffuseMat')
+  const u_SpecularMat = gl.getUniformLocation(gl.program, 'u_SpecularMat')
+  const u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess')
+  const u_AmbientMat = gl.getUniformLocation(gl.program, 'u_AmbientMat')
+  const u_CameraPos = gl.getUniformLocation(gl.program, 'u_CameraPos')
+
   if (
     !u_ModelMatrix ||
     !u_MvpMatrix ||
@@ -167,6 +167,7 @@ function main() {
     console.log('Failed to get the storage location')
     return
   }
+
   // ******************************************************************************************
   // Set the Specular and Diffuse light color
   gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0)
@@ -185,15 +186,19 @@ function main() {
   // Set the specular material
   gl.uniform1f(u_Shininess, 0.21794872 * 128)
 
-  var cameraPos = [1, 3, 8] // camera position
+  // camera position
+  let cameraPos = [1, 3, 8]
+
   // Set the camera position
-  gl.uniform3f(u_CameraPos, cameraPos[0], cameraPos[1], cameraPos[2])
+  gl.uniform3f(u_CameraPos, ...cameraPos)
+
   //********************************************************************************************
-  //*********************************************************************
+
   // creo una GUI con dat.gui
-  var gui = new dat.GUI()
+  const gui = new dat.GUI()
+
   // checkbox geometry
-  var materiali = { brass: true, emerald: false, bronze: false, jade: false, gold: false }
+  let materiali = { brass: true, emerald: false, bronze: false, jade: false, gold: false }
 
   const materialData = {
     brass: {
@@ -225,69 +230,76 @@ function main() {
   gui.add(materiali, 'brass').onFinishChange(function(value) {
     // Fires when a controller loses focus.
     if (value == true) {
-      for (var i in materiali) materiali[i] = false
+      for (let i of materiali) materiali[i] = false
       materiali.brass = true
       console.log('brass')
 
       setMaterial(materialData.brass)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    for (let ctrl of gui.__controllers) {
+      ctrl.updateDisplay()
     }
   })
   gui.add(materiali, 'emerald').onFinishChange(function(value) {
     // Fires when a controller loses focus.
-    // Fires when a controller loses focus.
     if (value == true) {
-      for (var i in materiali) materiali[i] = false
+      for (let i in materiali) materiali[i] = false
       materiali.emerald = true
       console.log('emerald')
 
       setMaterial(materialData.emerald)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    for (let ctrl of gui.__controllers) {
+      ctrl.updateDisplay()
     }
   })
   gui.add(materiali, 'bronze').onFinishChange(function(value) {
     // Fires when a controller loses focus.
-    // Fires when a controller loses focus.
     if (value == true) {
-      for (var i in materiali) materiali[i] = false
+      for (let i in materiali) materiali[i] = false
       materiali.bronze = true
       console.log('bronze')
+
+      setMaterial(materialData.emerald)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    for (let ctrl of gui.__controllers) {
+      ctrl.updateDisplay()
     }
   })
   gui.add(materiali, 'jade').onFinishChange(function(value) {
     // Fires when a controller loses focus.
-    // Fires when a controller loses focus.
     if (value == true) {
-      for (var i in materiali) materiali[i] = false
+      for (let i in materiali) materiali[i] = false
       materiali.jade = true
       console.log('jade')
+
+      setMaterial(materialData.emerald)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    for (let ctrl of gui.__controllers) {
+      ctrl.updateDisplay()
     }
   })
   gui.add(materiali, 'gold').onFinishChange(function(value) {
     // Fires when a controller loses focus.
-    // Fires when a controller loses focus.
     if (value == true) {
-      for (var i in materiali) materiali[i] = false
+      for (let i in materiali) materiali[i] = false
       materiali.gold = true
       console.log('gold')
+
+      setMaterial(materialData.emerald)
     }
+
     // Iterate over all controllers
-    for (var i in gui.__controllers) {
-      gui.__controllers[i].updateDisplay()
+    for (let ctrl of gui.__controllers) {
+      ctrl.updateDisplay()
     }
   })
 
@@ -303,18 +315,18 @@ function main() {
 
   //*********************************************************************************
 
-  var currentAngle = 0.0 // Current rotation angle
-  var vpMatrix = new Matrix4() // View projection matrix
+  let currentAngle = 0.0 // Current rotation angle
+  let vpMatrix = new Matrix4() // View projection matrix
 
   // Calculate the view projection matrix
   vpMatrix.setPerspective(30, canvas.width / canvas.height, 1, 100)
   vpMatrix.lookAt(cameraPos[0], cameraPos[1], cameraPos[2], 0, 0, 0, 0, 1, 0)
 
-  var modelMatrix = new Matrix4() // Model matrix
-  var mvpMatrix = new Matrix4() // Model view projection matrix
-  var normalMatrix = new Matrix4() // Transformation matrix for normals
+  let modelMatrix = new Matrix4() // Model matrix
+  let mvpMatrix = new Matrix4() // Model view projection matrix
+  let normalMatrix = new Matrix4() // Transformation matrix for normals
 
-  var tick = function() {
+  const tick = () => {
     currentAngle = animate(currentAngle) // Update the rotation angle
 
     // Calculate the model matrix
@@ -344,7 +356,7 @@ function main() {
   tick()
 }
 
-function initVertexBuffersCube(gl) {
+const initVertexBuffersCube = gl => {
   // create the shape
   const shape = new Sphere(100, 1)
 
@@ -358,7 +370,7 @@ function initVertexBuffersCube(gl) {
   gl.bindBuffer(gl.ARRAY_BUFFER, null)
 
   // Write the indices to the buffer object
-  var indexBuffer = gl.createBuffer()
+  const indexBuffer = gl.createBuffer()
   if (!indexBuffer) {
     console.log('Failed to create the buffer object')
     return -1
@@ -369,18 +381,20 @@ function initVertexBuffersCube(gl) {
   return shape.indices.length
 }
 
-function initArrayBuffer(gl, attribute, data, type, num) {
+const initArrayBuffer = (gl, attribute, data, type, num) => {
   // Create a buffer object
-  var buffer = gl.createBuffer()
+  const buffer = gl.createBuffer()
   if (!buffer) {
     console.log('Failed to create the buffer object')
     return false
   }
+
   // Write date into the buffer object
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
   gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW)
+
   // Assign the buffer object to the attribute variable
-  var a_attribute = gl.getAttribLocation(gl.program, attribute)
+  const a_attribute = gl.getAttribLocation(gl.program, attribute)
   if (a_attribute < 0) {
     console.log('Failed to get the storage location of ' + attribute)
     return false
@@ -393,16 +407,19 @@ function initArrayBuffer(gl, attribute, data, type, num) {
 
   return true
 }
+
 // Rotation angle (degrees/second)
-var ANGLE_STEP = 20.0
+const ANGLE_STEP = 20.0
+
 // Last time that this function was called
-var g_last = Date.now()
+let g_last = Date.now()
 function animate(angle) {
   // Calculate the elapsed time
-  var now = Date.now()
-  var elapsed = now - g_last
+  let now = Date.now()
+  let elapsed = now - g_last
   g_last = now
+
   // Update the current rotation angle (adjusted by the elapsed time)
-  var newAngle = angle + ANGLE_STEP * elapsed / 1000.0
+  let newAngle = angle + ANGLE_STEP * elapsed / 1000.0
   return (newAngle %= 360)
 }
