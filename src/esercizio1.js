@@ -65,52 +65,104 @@ const FSHADER_SOURCE = `
   }
 `
 
-class Sphere {
-  constructor(nDiv, radius) {
+const normalize = v => {
+  let norm = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+
+  if (norm != 0.0) {
+    v[0] /= norm
+    v[1] /= norm
+    v[2] /= norm
+  }
+
+  return v
+}
+
+const cross = (edge1, edge2) => {
+  let n = []
+
+  /* 
+   * Nx = UyVz - UzVy
+   * Ny = UzVx - UxVz
+   * Nz = UxVy - UyVx
+   */
+
+  n[0] = edge1[1] * edge2[2] - edge1[2] * edge2[1]
+  n[1] = edge1[2] * edge2[0] - edge1[0] * edge2[2]
+  n[2] = edge1[0] * edge2[1] - edge1[1] * edge2[0]
+
+  return n
+}
+
+const getNormal = (v1, v2, v3) => {
+  let edge1 = []
+  edge1[0] = v2[0] - v1[0]
+  edge1[1] = v2[1] - v1[1]
+  edge1[2] = v2[2] - v1[2]
+
+  let edge2 = []
+  edge2[0] = v3[0] - v1[0]
+  edge2[1] = v3[1] - v1[1]
+  edge2[2] = v3[2] - v1[2]
+
+  return cross(edge1, edge2)
+}
+
+class Cone {
+  getVertex(idx) {
+    return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
+  }
+
+  updateNormal(idx1, idx2, idx3) {
+    let triangle = [this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3)]
+
+    triangle.map(v => {
+      this.verticesToDraw.push(...v)
+    })
+
+    let norm = getNormal(...triangle)
+    this.normals.push(...norm, ...norm, ...norm)
+  }
+
+  constructor(nDiv, radius, height) {
     this.vertices = []
-    this.indices = []
+    this.verticesToDraw = []
     this.normals = []
 
-    // Per disegnare una sfera abbiamo bisogno di nDiv^2 vertici.
-    // Il ciclo for più esterno è quello che itera sull'angolo phi, ossia quello che ci fa passare da
-    // una circonferenza alla sua consecutiva.
-    for (let j = 0; j <= nDiv; j++) {
-      // L'angolo phi è compresto tra 0 e Pi
-      let phi = j * Math.PI / nDiv
+    const numberVertices = nDiv + 2
+    const angleStep = 2 * Math.PI / nDiv
+    const centre = [0.0, 0.0, 0.0]
+    const top = [0.0, height, 0.0]
 
-      // Il ciclo for più interno è quello che itera sull'angolo theta, ossia quello che ci fa passare da un vertice
-      // al suo successivo sulla stessa circonferenza.
-      for (let i = 0; i <= nDiv; i++) {
-        // L'angolo theta è compreso tra 0 e 2 * Pi.
-        let theta = i * 2 * Math.PI / nDiv
+    this.vertices.push(...centre)
 
-        // Il calcolo delle coordinate di un vertice avviene tramite le equazioni parametriche della sfera.
-        let x = Math.cos(phi) * Math.sin(theta)
-        let y = Math.sin(phi) * Math.sin(theta)
-        let z = Math.cos(theta)
+    this.vertices.push(...top)
 
-        this.vertices.push(radius * x, radius * y, radius * z)
-        this.normals.push(x, y, z)
-      }
+    // genero tutti i vertici
+    for (let i = 2, angle = 0; i < numberVertices; i++, angle += angleStep) {
+      let x = Math.cos(angle) * radius
+      let z = Math.sin(angle) * radius
+      let y = centre[1]
+
+      this.vertices.push(x, y, z)
     }
 
-    // Inizializzazione degli indici, il significato dei cicli for è sempre lo stesso.
-    for (let j = 0; j < nDiv; j++) {
-      for (let i = 0; i < nDiv; i++) {
-        // p1 è un punto su di una circonferenza.
-        let p1 = j * (nDiv + 1) + i
-        // p2 è il punto sulla circonferenza superiore a quella di p1, nella stessa posizione di p1.
-        let p2 = p1 + (nDiv + 1)
-
-        // I punti vanno uniti come nel cilindro per formare dei quadrati.
-        this.indices.push(p1, p2, p1 + 1)
-        this.indices.push(p1 + 1, p2, p2 + 1)
+    //Ora dobbiamo calcolare le normali e caricare normali e vertici negli array.
+    for (let i = 2; i < numberVertices; i++) {
+      if (i < numberVertices - 1) {
+        // Collego il vertice al suo precedente e al top.
+        this.updateNormal(i + 1, i, 1)
+        // Collego il vertice al suo successivo e al centro basso.
+        this.updateNormal(i, i + 1, 0)
+      } else {
+        //Nel caso sia l'ultimo vertice allora lo collego col primo sulla circonferenza.
+        this.updateNormal(2, i, 1)
+        this.updateNormal(i, 2, 0)
       }
     }
   }
 }
 
-function main() {
+const main = () => {
   // Retrieve <canvas> element
   const canvas = document.getElementById('webgl')
 
@@ -128,7 +180,7 @@ function main() {
   }
 
   // Set the vertex coordinates, the color and the normal
-  const n = initVertexBuffersCube(gl)
+  const n = initVertexBuffers(gl)
   if (n < 0) {
     console.log('Failed to set the vertex information')
     return
@@ -348,7 +400,7 @@ function main() {
     currentAngle = animate(currentAngle) // Update the rotation angle
 
     // Calculate the model matrix
-    modelMatrix.setRotate(currentAngle, 1, 1, 0) // Rotate around the y-axis
+    modelMatrix.setRotate(currentAngle, 5, 1, 2) // Rotate around the y-axis
 
     // Pass the model matrix to u_ModelMatrix
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements)
@@ -366,37 +418,25 @@ function main() {
     // Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-    // Draw the cube(Note that the 3rd argument is the gl.UNSIGNED_SHORT)
-    gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_SHORT, 0)
+    // Draw the shape (Note that the 3rd argument is the gl.UNSIGNED_SHORT)
+    gl.drawArrays(gl.TRIANGLES, 0, n)
 
     requestAnimationFrame(tick, canvas) // Request that the browser ?calls tick
   }
   tick()
 }
 
-const initVertexBuffersCube = gl => {
+const initVertexBuffers = gl => {
   // create the shape
-  const shape = new Sphere(100, 1)
+  const shape = new Cone(400, 1, 2)
 
   // Write the vertex property to buffers (coordinates and normals)
   // Same data can be used for vertex and normal
   // In order to make it intelligible, another buffer is prepared separately
-  if (!initArrayBuffer(gl, 'a_Position', new Float32Array(shape.vertices), gl.FLOAT, 3)) return -1
+  if (!initArrayBuffer(gl, 'a_Position', new Float32Array(shape.verticesToDraw), gl.FLOAT, 3)) return -1
   if (!initArrayBuffer(gl, 'a_Normal', new Float32Array(shape.normals), gl.FLOAT, 3)) return -1
 
-  // Unbind the buffer object
-  gl.bindBuffer(gl.ARRAY_BUFFER, null)
-
-  // Write the indices to the buffer object
-  const indexBuffer = gl.createBuffer()
-  if (!indexBuffer) {
-    console.log('Failed to create the buffer object')
-    return -1
-  }
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(shape.indices), gl.STATIC_DRAW)
-
-  return shape.indices.length
+  return shape.verticesToDraw.length / 3
 }
 
 const initArrayBuffer = (gl, attribute, data, type, num) => {
@@ -441,3 +481,5 @@ function animate(angle) {
   let newAngle = angle + ANGLE_STEP * elapsed / 1000.0
   return (newAngle %= 360)
 }
+
+main()
