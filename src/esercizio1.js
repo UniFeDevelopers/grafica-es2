@@ -65,13 +65,13 @@ const FSHADER_SOURCE = `
   }
 `
 
-function cross(edge1, edge2) {
-  let n = []
+const cross = (edge1, edge2) => {
+  let n = new Array(3)
   /*
-  Nx = UyVz - UzVy
-  Ny = UzVx - UxVz
-  Nz = UxVy - UyVx
-  */
+   * Nx = UyVz - UzVy
+   * Ny = UzVx - UxVz
+   * Nz = UxVy - UyVx
+   */
   n[0] = edge1[1] * edge2[2] - edge1[2] * edge2[1]
   n[1] = edge1[2] * edge2[0] - edge1[0] * edge2[2]
   n[2] = edge1[0] * edge2[1] - edge1[1] * edge2[0]
@@ -79,13 +79,13 @@ function cross(edge1, edge2) {
   return n
 }
 
-function getNormal(v1, v2, v3) {
-  let edge1 = []
+const getNormal = (v1, v2, v3) => {
+  let edge1 = new Array(3)
   edge1[0] = v2[0] - v1[0]
   edge1[1] = v2[1] - v1[1]
   edge1[2] = v2[2] - v1[2]
 
-  let edge2 = []
+  let edge2 = new Array(3)
   edge2[0] = v3[0] - v1[0]
   edge2[1] = v3[1] - v1[1]
   edge2[2] = v3[2] - v1[2]
@@ -94,28 +94,6 @@ function getNormal(v1, v2, v3) {
 }
 
 class Sphere {
-  getVertex(idx) {
-    //Dato un indice ritorna il vertice.
-    return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
-  }
-
-  addNormal(idx1, idx2, idx3) {
-    //Array di 3 componenti.
-    let normal = getNormal(this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3))
-
-    this.normals[3 * idx1] += normal[0]
-    this.normals[3 * idx1 + 1] += normal[1]
-    this.normals[3 * idx1 + 2] += normal[2]
-
-    this.normals[3 * idx2] += normal[0]
-    this.normals[3 * idx2 + 1] += normal[1]
-    this.normals[3 * idx2 + 2] += normal[2]
-
-    this.normals[3 * idx3] += normal[0]
-    this.normals[3 * idx3 + 1] += normal[1]
-    this.normals[3 * idx3 + 2] += normal[2]
-  }
-
   constructor(nDiv, radius) {
     this.vertices = []
     this.indices = []
@@ -162,9 +140,31 @@ class Sphere {
       }
     }
   }
+
+  getVertex(idx) {
+    // Dato un indice ritorna il vertice.
+    return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
+  }
+
+  addNormal(idx1, idx2, idx3) {
+    // Array di 3 componenti.
+    let normal = getNormal(this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3))
+
+    this.normals[3 * idx1] += normal[0]
+    this.normals[3 * idx1 + 1] += normal[1]
+    this.normals[3 * idx1 + 2] += normal[2]
+
+    this.normals[3 * idx2] += normal[0]
+    this.normals[3 * idx2 + 1] += normal[1]
+    this.normals[3 * idx2 + 2] += normal[2]
+
+    this.normals[3 * idx3] += normal[0]
+    this.normals[3 * idx3 + 1] += normal[1]
+    this.normals[3 * idx3 + 2] += normal[2]
+  }
 }
 
-function main() {
+const main = () => {
   // Retrieve <canvas> element
   const canvas = document.getElementById('webgl')
 
@@ -495,3 +495,5 @@ function animate(angle) {
   let newAngle = angle + ANGLE_STEP * elapsed / 1000.0
   return (newAngle %= 360)
 }
+
+main()

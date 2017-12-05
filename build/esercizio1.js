@@ -45,13 +45,13 @@ var VSHADER_SOURCE =
 var FSHADER_SOURCE =
   '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n  varying vec4 v_Color;\n  void main() {\n    gl_FragColor = v_Color;\n  }\n'
 
-function cross(edge1, edge2) {
-  var n = []
+var cross = function cross(edge1, edge2) {
+  var n = new Array(3)
   /*
-  Nx = UyVz - UzVy
-  Ny = UzVx - UxVz
-  Nz = UxVy - UyVx
-  */
+   * Nx = UyVz - UzVy
+   * Ny = UzVx - UxVz
+   * Nz = UxVy - UyVx
+   */
   n[0] = edge1[1] * edge2[2] - edge1[2] * edge2[1]
   n[1] = edge1[2] * edge2[0] - edge1[0] * edge2[2]
   n[2] = edge1[0] * edge2[1] - edge1[1] * edge2[0]
@@ -59,13 +59,13 @@ function cross(edge1, edge2) {
   return n
 }
 
-function getNormal(v1, v2, v3) {
-  var edge1 = []
+var getNormal = function getNormal(v1, v2, v3) {
+  var edge1 = new Array(3)
   edge1[0] = v2[0] - v1[0]
   edge1[1] = v2[1] - v1[1]
   edge1[2] = v2[2] - v1[2]
 
-  var edge2 = []
+  var edge2 = new Array(3)
   edge2[0] = v3[0] - v1[0]
   edge2[1] = v3[1] - v1[1]
   edge2[2] = v3[2] - v1[2]
@@ -74,35 +74,6 @@ function getNormal(v1, v2, v3) {
 }
 
 var Sphere = (function() {
-  _createClass(Sphere, [
-    {
-      key: 'getVertex',
-      value: function getVertex(idx) {
-        //Dato un indice ritorna il vertice.
-        return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
-      },
-    },
-    {
-      key: 'addNormal',
-      value: function addNormal(idx1, idx2, idx3) {
-        //Array di 3 componenti.
-        var normal = getNormal(this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3))
-
-        this.normals[3 * idx1] += normal[0]
-        this.normals[3 * idx1 + 1] += normal[1]
-        this.normals[3 * idx1 + 2] += normal[2]
-
-        this.normals[3 * idx2] += normal[0]
-        this.normals[3 * idx2 + 1] += normal[1]
-        this.normals[3 * idx2 + 2] += normal[2]
-
-        this.normals[3 * idx3] += normal[0]
-        this.normals[3 * idx3 + 1] += normal[1]
-        this.normals[3 * idx3 + 2] += normal[2]
-      },
-    },
-  ])
-
   function Sphere(nDiv, radius) {
     _classCallCheck(this, Sphere)
 
@@ -152,10 +123,39 @@ var Sphere = (function() {
     }
   }
 
+  _createClass(Sphere, [
+    {
+      key: 'getVertex',
+      value: function getVertex(idx) {
+        // Dato un indice ritorna il vertice.
+        return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
+      },
+    },
+    {
+      key: 'addNormal',
+      value: function addNormal(idx1, idx2, idx3) {
+        // Array di 3 componenti.
+        var normal = getNormal(this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3))
+
+        this.normals[3 * idx1] += normal[0]
+        this.normals[3 * idx1 + 1] += normal[1]
+        this.normals[3 * idx1 + 2] += normal[2]
+
+        this.normals[3 * idx2] += normal[0]
+        this.normals[3 * idx2 + 1] += normal[1]
+        this.normals[3 * idx2 + 2] += normal[2]
+
+        this.normals[3 * idx3] += normal[0]
+        this.normals[3 * idx3 + 1] += normal[1]
+        this.normals[3 * idx3 + 2] += normal[2]
+      },
+    },
+  ])
+
   return Sphere
 })()
 
-function main() {
+var main = function main() {
   // Retrieve <canvas> element
   var canvas = document.getElementById('webgl')
 
@@ -621,3 +621,5 @@ function animate(angle) {
   var newAngle = angle + ANGLE_STEP * elapsed / 1000.0
   return (newAngle %= 360)
 }
+
+main()
