@@ -474,7 +474,7 @@ var main = function main() {
 
 var initVertexBuffersCube = function initVertexBuffersCube(gl) {
   // create the shape
-  var shape = new Sphere(100, 1)
+  var shape = new Sphere(200, 1)
 
   // Write the vertex property to buffers (coordinates and normals)
   // Same data can be used for vertex and normal
