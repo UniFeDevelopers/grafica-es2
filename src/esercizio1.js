@@ -79,6 +79,15 @@ function cross(edge1, edge2) {
   return n
 }
 
+function normalize(v) {
+  let norm = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+  v[0] /= norm
+  v[1] /= norm
+  v[2] /= norm
+
+  return v
+}
+
 function getNormal(v1, v2, v3) {
   let edge1 = []
   edge1[0] = v2[0] - v1[0]
@@ -158,7 +167,8 @@ class Sphere {
         this.addNormal(p1, p2, p1 + 1)
 
         this.indices.push(p1 + 1, p2, p2 + 1)
-        this.addNormal(p1 + 1, p2, p2 + 1)
+        // Ho cambiato l'ordine per mettere p2 + 1 come punto centrale del triangolo.
+        this.addNormal(p2 + 1, p2, p1 + 1)
       }
     }
   }
