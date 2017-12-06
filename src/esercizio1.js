@@ -121,6 +121,7 @@ class Torus {
 
 class Torus {
   constructor(nDiv, radius, radiusInner) {
+    //super()
     this.vertices = []
     this.indices = []
     this.normals = []
@@ -135,17 +136,17 @@ class Torus {
 
       for (let i = 0; i <= nDiv; i++) {
         let theta = i * 2 * Math.PI / nDiv
-
         let x = Math.sin(phi) * (radius + radiusInner * Math.cos(theta))
         let y = Math.cos(phi) * (radius + radiusInner * Math.cos(theta))
         let z = Math.sin(theta) * radiusInner
 
-        let normalX = Math.cos(phi) * Math.cos(theta)
-        let normalY = -Math.cos(theta) * Math.sin(phi)
-        let normalZ = Math.sin(theta)
-        this.normals.push(normalX, normalY, normalZ)
-
         this.vertices.push(x, y, z)
+
+        let normalex = Math.cos(theta) * Math.cos(phi)
+        let normaley = Math.cos(theta) * Math.sin(phi)
+        let normalez = Math.sin(theta)
+
+        this.normals.push(normalex, normaley, normalez)
       }
     }
 
@@ -399,7 +400,7 @@ const main = () => {
     currentAngle = animate(currentAngle) // Update the rotation angle
 
     // Calculate the model matrix
-    modelMatrix.setRotate(currentAngle, 1, 1, 0) // Rotate around the y-axis
+    modelMatrix.setRotate(currentAngle, 1, 0, 0) // Rotate around the y-axis
 
     // Pass the model matrix to u_ModelMatrix
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements)
@@ -427,7 +428,7 @@ const main = () => {
 
 const initVertexBuffersCube = gl => {
   // create the shape
-  const shape = new Torus(100, 1, 0.4)
+  const shape = new Torus(200, 1, 0.2)
 
   // Write the vertex property to buffers (coordinates and normals)
   // Same data can be used for vertex and normal
