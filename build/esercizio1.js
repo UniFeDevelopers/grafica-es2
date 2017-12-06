@@ -1,22 +1,5 @@
 'use strict'
 
-var _createClass = (function() {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i]
-      descriptor.enumerable = descriptor.enumerable || false
-      descriptor.configurable = true
-      if ('value' in descriptor) descriptor.writable = true
-      Object.defineProperty(target, descriptor.key, descriptor)
-    }
-  }
-  return function(Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps)
-    if (staticProps) defineProperties(Constructor, staticProps)
-    return Constructor
-  }
-})()
-
 function _toConsumableArray(arr) {
   if (Array.isArray(arr)) {
     for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
@@ -46,75 +29,27 @@ var FSHADER_SOURCE =
   '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n  varying vec4 v_Color;\n  void main() {\n    gl_FragColor = v_Color;\n  }\n'
 
 /*
-class Sphere {
-  constructor(nDiv, radius) {
-    this.vertices = []
-    this.indices = []
-    this.normals = []
-
-    // Per disegnare una sfera abbiamo bisogno di nDiv^2 vertici.
-    // Il ciclo for più esterno è quello che itera sull'angolo phi, ossia quello che ci fa passare da
-    // una circonferenza alla sua consecutiva.
-    for (let j = 0; j <= nDiv; j++) {
-      // L'angolo phi è compresto tra 0 e Pi
-      let phi = j * Math.PI / nDiv
-
-      // Il ciclo for più interno è quello che itera sull'angolo theta, ossia quello che ci fa passare da un vertice
-      // al suo successivo sulla stessa circonferenza.
-      for (let i = 0; i <= nDiv; i++) {
-        // L'angolo theta è compreso tra 0 e 2 * Pi.
-        let theta = i * 2 * Math.PI / nDiv
-
-        // Il calcolo delle coordinate di un vertice avviene tramite le equazioni parametriche della sfera.
-        let x = Math.cos(phi) * Math.sin(theta)
-        let y = Math.sin(phi) * Math.sin(theta)
-        let z = Math.cos(theta)
-
-        this.vertices.push(radius * x, radius * y, radius * z)
-        this.normals.push(x, y, z)
-      }
-    }
-
-    // Inizializzazione degli indici, il significato dei cicli for è sempre lo stesso.
-    for (let j = 0; j < nDiv; j++) {
-      for (let i = 0; i < nDiv; i++) {
-        // p1 è un punto su di una circonferenza.
-        let p1 = j * (nDiv + 1) + i
-        // p2 è il punto sulla circonferenza superiore a quella di p1, nella stessa posizione di p1.
-        let p2 = p1 + (nDiv + 1)
-
-        // I punti vanno uniti come nel cilindro per formare dei quadrati.
-        this.indices.push(p1, p2, p1 + 1)
-        this.indices.push(p1 + 1, p2, p2 + 1)
-      }
-    }
-  }
-}
-*/
-
-var Torus = (function() {
-  function Torus(nDiv, radius, radiusInner) {
-    _classCallCheck(this, Torus)
-
+class Torus {
+  constructor(nDiv, radius, radiusInner) {
     this.vertices = []
     this.indices = []
     this.normals = []
 
     // https://code.google.com/p/min3d/source/browse/trunk/src/min3d/objectPrimitives/Torus.java?r=105
 
-    var step1r = 2 * Math.PI / nDiv
-    var step2r = 2 * Math.PI / nDiv
+    let step1r = 2 * Math.PI / nDiv
+    let step2r = 2 * Math.PI / nDiv
 
-    var a1a = 0
-    var a1b = step1r
+    let a1a = 0
+    let a1b = step1r
 
-    var vCount = 0
+    let vCount = 0
 
-    for (var s = 0; s < nDiv; ++s, a1a = a1b, a1b += step1r) {
-      var a2a = 0
-      var a2b = step2r
+    for (let s = 0; s < nDiv; ++s, a1a = a1b, a1b += step1r) {
+      let a2a = 0
+      let a2b = step2r
 
-      for (var s2 = 0; s2 < nDiv; ++s2, a2a = a2b, a2b += step2r) {
+      for (let s2 = 0; s2 < nDiv; ++s2, a2a = a2b, a2b += step2r) {
         this.getVertex(a1a, radius, a2a, radiusInner)
         this.getVertex(a1b, radius, a2a, radiusInner)
         this.getVertex(a1b, radius, a2b, radiusInner)
@@ -127,31 +62,67 @@ var Torus = (function() {
     }
   }
 
-  _createClass(Torus, [
-    {
-      key: 'getVertex',
-      value: function getVertex(a1, r1, a2, r2) {
-        var ca1 = Math.cos(a1)
-        var ca2 = Math.cos(a2)
-        var sa1 = Math.sin(a1)
-        var sa2 = Math.sin(a2)
-        var centerX = r1 * ca1
-        var centerZ = -r1 * sa1
-        var normalX = ca2 * ca1
-        var normalY = sa2
-        var normalZ = -ca2 * sa1
-        var x = centerX + r2 * normalX
-        var y = r2 * normalY
-        var z = centerZ + r2 * normalZ
+  getVertex(a1, r1, a2, r2) {
+    let ca1 = Math.cos(a1)
+    let ca2 = Math.cos(a2)
+    let sa1 = Math.sin(a1)
+    let sa2 = Math.sin(a2)
+    let centerX = r1 * ca1
+    let centerZ = -r1 * sa1
+    let normalX = ca2 * ca1
+    let normalY = sa2
+    let normalZ = -ca2 * sa1
+    let x = centerX + r2 * normalX
+    let y = r2 * normalY
+    let z = centerZ + r2 * normalZ
 
-        this.normals.push(normalX, normalY, normalZ)
-        this.vertices.push(x, y, z)
-      },
-    },
-  ])
+    this.normals.push(normalX, normalY, normalZ)
+    this.vertices.push(x, y, z)
+  }
+}
+*/
 
-  return Torus
-})()
+var Torus = function Torus(nDiv, radius, radiusInner) {
+  _classCallCheck(this, Torus)
+
+  this.vertices = []
+  this.indices = []
+  this.normals = []
+
+  // I vertici e gli indici del toro vengono calcolati come per la sfera
+  // cambia solamente l'angolo phi che arriva fino a 2 PI
+  // e chiaramente le coordinate dei vertici in funzione della
+  // formula parametrica del toro
+
+  for (var j = 0; j <= nDiv; j++) {
+    var phi = j * 2 * Math.PI / nDiv
+
+    for (var i = 0; i <= nDiv; i++) {
+      var theta = i * 2 * Math.PI / nDiv
+
+      var x = Math.sin(phi) * (radius + radiusInner * Math.cos(theta))
+      var y = Math.cos(phi) * (radius + radiusInner * Math.cos(theta))
+      var z = Math.sin(theta) * radiusInner
+
+      var normalX = Math.cos(phi) * Math.cos(theta)
+      var normalY = -Math.cos(theta) * Math.sin(phi)
+      var normalZ = Math.sin(theta)
+      this.normals.push(normalX, normalY, normalZ)
+
+      this.vertices.push(x, y, z)
+    }
+  }
+
+  for (var _j = 0; _j < nDiv; _j++) {
+    for (var _i = 0; _i < nDiv; _i++) {
+      var p1 = _j * (nDiv + 1) + _i
+      var p2 = p1 + (nDiv + 1)
+
+      this.indices.push(p1, p2, p1 + 1)
+      this.indices.push(p1 + 1, p2, p2 + 1)
+    }
+  }
+}
 
 var main = function main() {
   // Retrieve <canvas> element
