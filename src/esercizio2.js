@@ -1,4 +1,4 @@
-// esercizio 1b
+// esercizio 2
 // implementazione modello di blinn phong
 // GDD - 2017
 // Vertex shader program
@@ -65,23 +65,50 @@ const FSHADER_SOURCE = `
   varying vec3  v_SpecularMat;
   varying float v_Shininess;
 
+  uniform int u_modelChoice;
+
   void main() {
+    float ka = 1.0;
+    float ks = 0.5;
+    float kd = 0.5;
+
     float d = length(v_LightPosition - v_vertexPosition);
-    float atten = 1.0 / (0.01 * d*d);
+    float atten = 1.0 / (0.01 * d * d);
 
     vec3 lightDirection = normalize(v_LightPosition - v_vertexPosition);
     float nDotL = max(dot(lightDirection, v_normal), 0.0);
+    vec3 h = normalize(normalize(v_CameraPos - v_vertexPosition) + lightDirection);
+    float hDotn = max(dot(h, v_normal), 0.0);
+
     vec3 diffuse = v_LightColor * v_DiffuseMat * nDotL;
     vec3 ambient = v_AmbientLight * v_AmbientMat;
     vec3 specular = vec3(0.0, 0.0, 0.0);
 
+    /*
+     * TODO:
+     * - gestire ks e kd
+     * - aggiungere max-phong
+     * - riumuovere commento per il modello in fondo o mostrarlo meglio
+     */
+
     if (nDotL > 0.0) {
-      vec3 h = normalize(normalize(v_CameraPos - v_vertexPosition) + lightDirection);
-      float hDotn = max(dot(h, v_normal), 0.0);
-      specular = v_LightColor * v_SpecularMat * pow(hDotn, v_Shininess);
+      if (u_modelChoice == 0) {       // Phong model
+        specular = v_LightColor * v_SpecularMat * pow(hDotn, v_Shininess);
+      }
+      else if (u_modelChoice == 1) {  // Modified Blinn-Phong model
+        specular = v_LightColor * pow(hDotn, v_Shininess);
+      }
+      else if (u_modelChoice == 2) {  // Max-Phong model
+        /*
+         * code here
+         */
+      }
     }
 
     gl_FragColor = vec4(atten * (diffuse + specular) + ambient, 1.0);
+
+    // I = Ii * dot(n, l) * (ks * js + kd * jd) + Ia * ka * ja 
+    // gl_fragColor = v_LightColor * dot(v_normal, v_LightDirection) * (ks * js + kd * jd) + v_AmbientLight * ka * ja; 
   }
 `
 
@@ -210,6 +237,7 @@ const main = () => {
   const u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess')
   const u_AmbientMat = gl.getUniformLocation(gl.program, 'u_AmbientMat')
   const u_CameraPos = gl.getUniformLocation(gl.program, 'u_CameraPos')
+  const u_modelChoice = gl.getUniformLocation(gl.program, 'u_modelChoice')
 
   if (
     !u_ModelMatrix ||
@@ -222,7 +250,8 @@ const main = () => {
     !u_SpecularMat ||
     !u_Shininess ||
     !u_AmbientMat ||
-    !u_CameraPos
+    !u_CameraPos ||
+    !u_modelChoice
   ) {
     console.log('Failed to get the storage location')
     return
@@ -245,6 +274,9 @@ const main = () => {
 
   // Set the specular material
   gl.uniform1f(u_Shininess, 0.21794872 * 128)
+
+  // Set used light model
+  gl.uniform1i(u_modelChoice, 0.0)
 
   // camera position
   let cameraPos = [1, 3, 8]
@@ -428,7 +460,7 @@ const main = () => {
       if (value === true) {
         for (let i in materiali) materiali[i] = false
         materiali[material] = true
-        console.log(material)
+        console.log(`%cMaterial: %c${material}`, 'font-weight: 600', 'font-weight: 400')
 
         setMaterial(materialData[material])
       }
@@ -442,6 +474,7 @@ const main = () => {
 
   // Forza i checkbox perchè non vengano deselezionati
   // per evitare lo stato in cui nessuno sia selezionato
+  // e, di default, chiudi il menu dei materiali
   document.querySelectorAll('input[type="checkbox"').forEach(el => {
     el.onchange = e => {
       if (!e.target.checked) {
@@ -449,6 +482,24 @@ const main = () => {
       }
     }
   })
+  document.querySelector('.close-bottom').click()
+
+  document.querySelector('.radio-model').onchange = e => {
+    switch (e.target.value) {
+      case '0':
+        console.log('%cLight model: %cPhong', 'font-weight: 600', 'font-weight: 400')
+        break
+
+      case '1':
+        console.log('%cLight model: %cModified Phong', 'font-weight: 600', 'font-weight: 400')
+        break
+
+      case '2':
+        console.log('%cLight model: %cMax-Phong', 'font-weight: 600', 'font-weight: 400')
+        break
+    }
+    gl.uniform1i(u_modelChoice, parseFloat(e.target.value))
+  }
 
   //*********************************************************************************
 
@@ -457,7 +508,7 @@ const main = () => {
 
   // Calculate the view projection matrix
   vpMatrix.setPerspective(30, canvas.width / canvas.height, 1, 100)
-  vpMatrix.lookAt(cameraPos[0], cameraPos[1], cameraPos[2], 0, 0, 0, 0, 1, 0)
+  vpMatrix.lookAt(...cameraPos, 0, 0, 0, 0, 1, 0)
 
   let modelMatrix = new Matrix4() // Model matrix
   let mvpMatrix = new Matrix4() // Model view projection matrix
@@ -467,7 +518,7 @@ const main = () => {
     currentAngle = animate(currentAngle) // Update the rotation angle
 
     // Calculate the model matrix
-    modelMatrix.setRotate(currentAngle, 5, 1, 2) // Rotate around the y-axis
+    modelMatrix.setRotate(currentAngle, 0.5, 1, 0) // Rotate around the y-axis
 
     // Pass the model matrix to u_ModelMatrix
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements)

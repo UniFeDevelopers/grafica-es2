@@ -34,7 +34,7 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
-// Codice1.js
+// esercizio 1b
 // implementazione modello di blinn phong
 // GDD - 2017
 // Vertex shader program

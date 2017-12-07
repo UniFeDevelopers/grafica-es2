@@ -34,28 +34,16 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
-// esercizio 1a
+// esercizio 2
 // implementazione modello di blinn phong
 // GDD - 2017
 // Vertex shader program
 var VSHADER_SOURCE =
-  '\n  attribute vec4 a_Position;\n  attribute vec4 a_Normal;\n  uniform mat4 u_MvpMatrix;\n  uniform mat4 u_ModelMatrix; // Model matrix\n  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal\n  uniform vec3 u_LightColor; // Light color\n  uniform vec3 u_LightPosition; // Position of the light source\n  uniform vec3 u_AmbientLight; // Ambient light color\n  uniform vec3 u_DiffuseMat; // Diffuse material color\n  uniform vec3 u_SpecularMat; // Specular material color\n  uniform float u_Shininess  ; // Specular material shininess\n  uniform vec3 u_AmbientMat; // Ambient material color\n  uniform vec3 u_CameraPos; // Camera Position\n  varying vec4 v_Color;\n\n  void main() {\n    gl_Position = u_MvpMatrix * a_Position;\n\n    // Calculate a normal to be fit with a model matrix, and make it 1.0 in length\n    vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));\n\n    // Calculate world coordinate of vertex\n    vec4 vertexPosition = u_ModelMatrix * a_Position;\n    float d = length(u_LightPosition - vec3(vertexPosition));\n    float atten = 1.0/(0.01 * d*d);\n\n    // Calculate the light direction and make it 1.0 in length\n    vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));\n\n    // The dot product of the light direction and the normal\n    float nDotL = max(dot(lightDirection, normal), 0.0);\n\n    // Calculate the color due to diffuse reflection\n    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;\n\n    // Calculate the color due to ambient reflection\n    vec3 ambient = u_AmbientLight * u_AmbientMat;\n    vec3 specular = vec3(0.0,0.0,0.0);\n\n    if(nDotL > 0.0) {\n      // Calculate specular component\n      vec3 h = normalize(normalize(u_CameraPos - vec3(vertexPosition)) + lightDirection);\n      float hDotn  = max(dot(h, normal), 0.0);\n      specular = u_LightColor * u_SpecularMat * pow(hDotn,u_Shininess);\n    }\n\n    // Add the surface colors due to diffuse reflection and ambient reflection\n    v_Color = vec4(atten *(diffuse + specular)  + ambient, 1.0);\n  }\n'
+  '\n  attribute vec4 a_Position;\n  attribute vec4 a_Normal;\n  uniform mat4 u_MvpMatrix;\n  uniform mat4 u_ModelMatrix; // Model matrix\n  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal\n  uniform vec3 u_LightColor; // Light color\n  uniform vec3 u_LightPosition; // Position of the light source\n  uniform vec3 u_AmbientLight; // Ambient light color\n  uniform vec3 u_DiffuseMat; // Diffuse material color\n  uniform vec3 u_SpecularMat; // Specular material color\n  uniform float u_Shininess; // Specular material shininess\n  uniform vec3 u_AmbientMat; // Ambient material color\n  uniform vec3 u_CameraPos; // Camera Position\n\n  varying vec3  v_LightPosition;\n  varying vec3  v_vertexPosition;\n  varying vec3  v_normal;\n  varying vec3  v_LightColor;\n  varying vec3  v_DiffuseMat;\n  varying vec3  v_AmbientLight;\n  varying vec3  v_AmbientMat;\n  varying vec3  v_CameraPos;\n  varying vec3  v_SpecularMat;\n  varying float v_Shininess;\n\n  void main() {\n    v_LightPosition = u_LightPosition;\n    v_LightColor = u_LightColor;\n    v_DiffuseMat = u_DiffuseMat;\n    v_AmbientLight = u_AmbientLight;\n    v_AmbientMat = u_AmbientMat;\n    v_CameraPos = u_CameraPos;\n    v_SpecularMat = u_SpecularMat;\n    v_Shininess = u_Shininess;\n\n    gl_Position = u_MvpMatrix * a_Position;\n\n    // Calculate a normal to be fit with a model matrix, and make it 1.0 in length\n    v_normal = normalize(vec3(u_NormalMatrix * a_Normal));\n\n    // Calculate world coordinate of vertex\n    v_vertexPosition = vec3(u_ModelMatrix * a_Position);\n  }\n'
 
 // Fragment shader program
 var FSHADER_SOURCE =
-  '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n  varying vec4 v_Color;\n  void main() {\n    gl_FragColor = v_Color;\n  }\n'
-
-var normalize = function normalize(v) {
-  var norm = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-
-  if (norm != 0.0) {
-    v[0] /= norm
-    v[1] /= norm
-    v[2] /= norm
-  }
-
-  return v
-}
+  '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n\n  varying vec3  v_LightPosition;\n  varying vec3  v_vertexPosition;\n  varying vec3  v_normal;\n  varying vec3  v_LightColor;\n  varying vec3  v_DiffuseMat;\n  varying vec3  v_AmbientLight;\n  varying vec3  v_AmbientMat;\n  varying vec3  v_CameraPos;\n  varying vec3  v_SpecularMat;\n  varying float v_Shininess;\n\n  uniform int u_modelChoice;\n\n  void main() {\n    float ka = 1.0;\n    float ks = 0.5;\n    float kd = 0.5;\n\n    float d = length(v_LightPosition - v_vertexPosition);\n    float atten = 1.0 / (0.01 * d * d);\n\n    vec3 lightDirection = normalize(v_LightPosition - v_vertexPosition);\n    float nDotL = max(dot(lightDirection, v_normal), 0.0);\n    vec3 h = normalize(normalize(v_CameraPos - v_vertexPosition) + lightDirection);\n    float hDotn = max(dot(h, v_normal), 0.0);\n\n    vec3 diffuse = v_LightColor * v_DiffuseMat * nDotL;\n    vec3 ambient = v_AmbientLight * v_AmbientMat;\n    vec3 specular = vec3(0.0, 0.0, 0.0);\n\n    /*\n     * TODO:\n     * - gestire ks e kd\n     * - aggiungere max-phong\n     * - riumuovere commento per il modello in fondo o mostrarlo meglio\n     */\n\n    if (nDotL > 0.0) {\n      if (u_modelChoice == 0) {       // Phong model\n        specular = v_LightColor * v_SpecularMat * pow(hDotn, v_Shininess);\n      }\n      else if (u_modelChoice == 1) {  // Modified Blinn-Phong model\n        specular = v_LightColor * pow(hDotn, v_Shininess);\n      }\n      else if (u_modelChoice == 2) {  // Max-Phong model\n        /*\n         * code here\n         */\n      }\n    }\n\n    gl_FragColor = vec4(atten * (diffuse + specular) + ambient, 1.0);\n\n    // I = Ii * dot(n, l) * (ks * js + kd * jd) + Ia * ka * ja \n    // gl_fragColor = v_LightColor * dot(v_normal, v_LightDirection) * (ks * js + kd * jd) + v_AmbientLight * ka * ja; \n  }\n'
 
 var cross = function cross(edge1, edge2) {
   var n = []
@@ -105,6 +93,7 @@ var Cone = (function() {
 
         triangle.map(function(v) {
           var _verticesToDraw
+
           ;(_verticesToDraw = _this.verticesToDraw).push.apply(_verticesToDraw, _toConsumableArray(v))
         })
 
@@ -130,7 +119,9 @@ var Cone = (function() {
     var angleStep = 2 * Math.PI / nDiv
     var centre = [0.0, 0.0, 0.0]
     var top = [0.0, height, 0.0]
+
     ;(_vertices = this.vertices).push.apply(_vertices, centre)
+
     ;(_vertices2 = this.vertices).push.apply(_vertices2, top)
 
     // genero tutti i vertici
@@ -200,6 +191,7 @@ var main = function main() {
   var u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess')
   var u_AmbientMat = gl.getUniformLocation(gl.program, 'u_AmbientMat')
   var u_CameraPos = gl.getUniformLocation(gl.program, 'u_CameraPos')
+  var u_modelChoice = gl.getUniformLocation(gl.program, 'u_modelChoice')
 
   if (
     !u_ModelMatrix ||
@@ -212,7 +204,8 @@ var main = function main() {
     !u_SpecularMat ||
     !u_Shininess ||
     !u_AmbientMat ||
-    !u_CameraPos
+    !u_CameraPos ||
+    !u_modelChoice
   ) {
     console.log('Failed to get the storage location')
     return
@@ -235,6 +228,9 @@ var main = function main() {
 
   // Set the specular material
   gl.uniform1f(u_Shininess, 0.21794872 * 128)
+
+  // Set used light model
+  gl.uniform1i(u_modelChoice, 0.0)
 
   // camera position
   var cameraPos = [1, 3, 8]
@@ -420,7 +416,7 @@ var main = function main() {
           materiali[i] = false
         }
         materiali[_material] = true
-        console.log(_material)
+        console.log('%cMaterial: %c' + _material, 'font-weight: 600', 'font-weight: 400')
 
         setMaterial(materialData[_material])
       }
@@ -463,6 +459,7 @@ var main = function main() {
 
   // Forza i checkbox perchè non vengano deselezionati
   // per evitare lo stato in cui nessuno sia selezionato
+  // e, di default, chiudi il menu dei materiali
   document.querySelectorAll('input[type="checkbox"').forEach(function(el) {
     el.onchange = function(e) {
       if (!e.target.checked) {
@@ -470,6 +467,24 @@ var main = function main() {
       }
     }
   })
+  document.querySelector('.close-bottom').click()
+
+  document.querySelector('.radio-model').onchange = function(e) {
+    switch (e.target.value) {
+      case '0':
+        console.log('%cLight model: %cPhong', 'font-weight: 600', 'font-weight: 400')
+        break
+
+      case '1':
+        console.log('%cLight model: %cModified Phong', 'font-weight: 600', 'font-weight: 400')
+        break
+
+      case '2':
+        console.log('%cLight model: %cMax-Phong', 'font-weight: 600', 'font-weight: 400')
+        break
+    }
+    gl.uniform1i(u_modelChoice, parseFloat(e.target.value))
+  }
 
   //*********************************************************************************
 
@@ -478,7 +493,7 @@ var main = function main() {
 
   // Calculate the view projection matrix
   vpMatrix.setPerspective(30, canvas.width / canvas.height, 1, 100)
-  vpMatrix.lookAt(cameraPos[0], cameraPos[1], cameraPos[2], 0, 0, 0, 0, 1, 0)
+  vpMatrix.lookAt.apply(vpMatrix, cameraPos.concat([0, 0, 0, 0, 1, 0]))
 
   var modelMatrix = new Matrix4() // Model matrix
   var mvpMatrix = new Matrix4() // Model view projection matrix
@@ -488,7 +503,7 @@ var main = function main() {
     currentAngle = animate(currentAngle) // Update the rotation angle
 
     // Calculate the model matrix
-    modelMatrix.setRotate(currentAngle, 5, 1, 2) // Rotate around the y-axis
+    modelMatrix.setRotate(currentAngle, 0.5, 1, 0) // Rotate around the y-axis
 
     // Pass the model matrix to u_ModelMatrix
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements)

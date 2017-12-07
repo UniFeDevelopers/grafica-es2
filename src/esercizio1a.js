@@ -1,4 +1,4 @@
-// Codice1.js
+// esercizio 1a
 // implementazione modello di blinn phong
 // GDD - 2017
 // Vertex shader program
