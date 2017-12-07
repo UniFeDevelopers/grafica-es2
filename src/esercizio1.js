@@ -146,7 +146,7 @@ class Cone {
       this.vertices.push(x, y, z)
     }
 
-    //Ora dobbiamo calcolare le normali e caricare normali e vertici negli array.
+    // Ora dobbiamo calcolare le normali e caricare normali e vertici negli array.
     for (let i = 2; i < numberVertices; i++) {
       if (i < numberVertices - 1) {
         // Collego il vertice al suo precedente e al top.
@@ -154,7 +154,7 @@ class Cone {
         // Collego il vertice al suo successivo e al centro basso.
         this.updateNormal(i, i + 1, 0)
       } else {
-        //Nel caso sia l'ultimo vertice allora lo collego col primo sulla circonferenza.
+        // Nel caso sia l'ultimo vertice allora lo collego col primo sulla circonferenza.
         this.updateNormal(2, i, 1)
         this.updateNormal(i, 2, 0)
       }
