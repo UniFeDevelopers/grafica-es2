@@ -1,4 +1,17 @@
 // esercizio 2
+
+/*
+ * TODO:
+ * 
+ * fragment shader:
+ *   - gestire ks e kd
+ *   - aggiungere max-phong
+ *   - riumuovere commento per il modello in fondo o mostrarlo meglio
+ * 
+ * vertex shader (e fragment):
+ *   - cambiare alcuni varying in uniform (?)
+ */
+
 // Vertex shader program
 const VSHADER_SOURCE = `
   attribute vec4 a_Position;
@@ -81,13 +94,6 @@ const FSHADER_SOURCE = `
     vec3 diffuse = v_LightColor * v_DiffuseMat * nDotL;
     vec3 ambient = v_AmbientLight * v_AmbientMat;
     vec3 specular = vec3(0.0, 0.0, 0.0);
-
-    /*
-     * TODO:
-     * - gestire ks e kd
-     * - aggiungere max-phong
-     * - riumuovere commento per il modello in fondo o mostrarlo meglio
-     */
 
     if (nDotL > 0.0) {
       if (u_modelChoice == 0) {       // Phong model
