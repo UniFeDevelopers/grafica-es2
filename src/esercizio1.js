@@ -103,28 +103,6 @@ function getNormal(v1, v2, v3) {
 }
 
 class Sphere {
-  getVertex(idx) {
-    //Dato un indice ritorna il vertice.
-    return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
-  }
-
-  addNormal(idx1, idx2, idx3) {
-    //Array di 3 componenti.
-    let normal = getNormal(this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3))
-
-    this.normals[3 * idx1] += normal[0]
-    this.normals[3 * idx1 + 1] += normal[1]
-    this.normals[3 * idx1 + 2] += normal[2]
-
-    this.normals[3 * idx2] += normal[0]
-    this.normals[3 * idx2 + 1] += normal[1]
-    this.normals[3 * idx2 + 2] += normal[2]
-
-    this.normals[3 * idx3] += normal[0]
-    this.normals[3 * idx3 + 1] += normal[1]
-    this.normals[3 * idx3 + 2] += normal[2]
-  }
-
   constructor(nDiv, radius) {
     this.vertices = []
     this.indices = []
@@ -149,8 +127,7 @@ class Sphere {
         let z = Math.cos(theta)
 
         this.vertices.push(radius * x, radius * y, radius * z)
-        // Inizializzo tutte le normali a 0.
-        this.normals.push(0.0, 0.0, 0.0)
+        this.normals.push(x, y, z)
       }
     }
 
@@ -164,9 +141,8 @@ class Sphere {
 
         // I punti vanno uniti come nel cilindro per formare dei quadrati.
         this.indices.push(p1, p2, p1 + 1)
-        this.addNormal(p1, p2, p1 + 1)
-
         this.indices.push(p1 + 1, p2, p2 + 1)
+
         // Ho cambiato l'ordine per mettere p2 + 1 come punto centrale del triangolo.
         this.addNormal(p2 + 1, p2, p1 + 1)
       }
@@ -174,7 +150,7 @@ class Sphere {
   }
 }
 
-function main() {
+const main = () => {
   // Retrieve <canvas> element
   const canvas = document.getElementById('webgl')
 
@@ -505,3 +481,5 @@ function animate(angle) {
   let newAngle = angle + ANGLE_STEP * elapsed / 1000.0
   return (newAngle %= 360)
 }
+
+main()
