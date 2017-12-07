@@ -250,20 +250,48 @@ const main = () => {
   const gui = new dat.GUI()
 
   // checkbox geometry
-  let materiali = { brass: true, emerald: false, bronze: false, jade: false, gold: false }
-
   const materialData = {
-    brass: {
-      ambient: [0.329412, 0.223529, 0.027451],
-      diffuse: [0.780392, 0.780392, 0.113725],
-      specular: [0.992157, 0.941176, 0.807843],
-      shiness: 0.21794872,
-    },
     emerald: {
       ambient: [0.0215, 0.1745, 0.0215],
       diffuse: [0.07568, 0.61424, 0.07568],
       specular: [0.633, 0.727811, 0.633],
       shiness: 0.6,
+    },
+    jade: {
+      ambient: [0.135, 0.2225, 0.1575],
+      diffuse: [0.54, 0.89, 0.63],
+      specular: [0.316228, 0.316228, 0.316228],
+      shiness: 0.1,
+    },
+    obsidian: {
+      ambient: [0.05375, 0.05, 0.06625],
+      diffuse: [0.18275, 0.17, 0.22525],
+      specular: [0.332741, 0.328634, 0.346435],
+      shiness: 0.3,
+    },
+    pearl: {
+      ambient: [0.25, 0.20725, 0.20725],
+      diffuse: [1, 0.829, 0.829],
+      specular: [0.296648, 0.296648, 0.296648],
+      shiness: 0.088,
+    },
+    ruby: {
+      ambient: [0.1745, 0.01175, 0.01175],
+      diffuse: [0.61424, 0.04126, 0.04136],
+      specular: [0.727811, 0.626959, 0.626959],
+      shiness: 0.6,
+    },
+    turquoise: {
+      ambient: [0.1, 0.18725, 0.1745],
+      diffuse: [0.396, 0.74151, 0.69102],
+      specular: [0.297254, 0.30829, 0.306678],
+      shiness: 0.1,
+    },
+    brass: {
+      ambient: [0.329412, 0.223529, 0.027451],
+      diffuse: [0.780392, 0.780392, 0.113725],
+      specular: [0.992157, 0.941176, 0.807843],
+      shiness: 0.21794872,
     },
     bronze: {
       ambient: [0.2125, 0.1275, 0.054],
@@ -271,10 +299,16 @@ const main = () => {
       specular: [0.393548, 0.271906, 0.166721],
       shiness: 0.2,
     },
-    jade: {
-      ambient: [0.135, 0.2225, 0.1575],
-      diffuse: [0.54, 0.89, 0.63],
-      specular: [0.316228, 0.316228, 0.316228],
+    chrome: {
+      ambient: [0.25, 0.25, 0.25],
+      diffuse: [0.4, 0.4, 0.4],
+      specular: [0.0774597, 0.0774597, 0.0774597],
+      shiness: 0.6,
+    },
+    copper: {
+      ambient: [0.19125, 0.0735, 0.0225],
+      diffuse: [0.7038, 0.27048, 0.0828],
+      specular: [0.256777, 0.137622, 0.086014],
       shiness: 0.1,
     },
     gold: {
@@ -283,7 +317,91 @@ const main = () => {
       specular: [0.628281, 0.555802, 0.366065],
       shiness: 0.4,
     },
+    silver: {
+      ambient: [0.19225, 0.19225, 0.19225],
+      diffuse: [0.50754, 0.50754, 0.50754],
+      specular: [0.508273, 0.508273, 0.508273],
+      shiness: 0.4,
+    },
+    blackPlastic: {
+      ambient: [0, 0, 0],
+      diffuse: [0.01, 0.01, 0.01],
+      specular: [0.5, 0.5, 0.5],
+      shiness: 0.25,
+    },
+    cyanPlastic: {
+      ambient: [0, 0.1, 0.06],
+      diffuse: [0, 0.509804, 0.509804],
+      specular: [0.501961, 0.501961, 0.501961],
+      shiness: 0.25,
+    },
+    greenPlastic: {
+      ambient: [0, 0, 0],
+      diffuse: [0.1, 0.35, 0.1],
+      specular: [0.45, 0.55, 0.45],
+      shiness: 0.25,
+    },
+    redPlastic: {
+      ambient: [0, 0, 0],
+      diffuse: [0.5, 0, 0],
+      specular: [0.7, 0.6, 0.6],
+      shiness: 0.25,
+    },
+    whitePlastic: {
+      ambient: [0, 0, 0],
+      diffuse: [0.55, 0.55, 0.55],
+      specular: [0.7, 0.7, 0.7],
+      shiness: 0.25,
+    },
+    yellowPlastic: {
+      ambient: [0, 0, 0],
+      diffuse: [0.5, 0.5, 0],
+      specular: [0.6, 0.6, 0.5],
+      shiness: 0.25,
+    },
+    blackRubber: {
+      ambient: [0.02, 0.02, 0.02],
+      diffuse: [0.01, 0.01, 0.01],
+      specular: [0.4, 0.4, 0.4],
+      shiness: 0.078125,
+    },
+    cyanRubber: {
+      ambient: [0, 0.05, 0.05],
+      diffuse: [0.4, 0.5, 0.5],
+      specular: [0.04, 0.7, 0.7],
+      shiness: 0.078125,
+    },
+    greenRubber: {
+      ambient: [0, 0.05, 0],
+      diffuse: [0.4, 0.5, 0.4],
+      specular: [0.04, 0.7, 0.04],
+      shiness: 0.078125,
+    },
+    redRubber: {
+      ambient: [0.05, 0, 0],
+      diffuse: [0.5, 0.4, 0.4],
+      specular: [0.7, 0.04, 0.04],
+      shiness: 0.078125,
+    },
+    whiteRubber: {
+      ambient: [0.05, 0.05, 0.05],
+      diffuse: [0.5, 0.5, 0.5],
+      specular: [0.7, 0.7, 0.7],
+      shiness: 0.078125,
+    },
+    yellowRubber: {
+      ambient: [0.05, 0.05, 0],
+      diffuse: [0.5, 0.5, 0.4],
+      specular: [0.7, 0.7, 0.04],
+      shiness: 0.078125,
+    },
   }
+
+  let materiali = {}
+  for (let material in materialData) {
+    materiali[material] = false
+  }
+  materiali.brass = true
 
   const setMaterial = material => {
     // Set the ambient material
@@ -297,81 +415,22 @@ const main = () => {
     gl.uniform1f(u_Shininess, material.shiness * 128)
   }
 
-  gui.add(materiali, 'brass').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
-    if (value == true) {
-      for (let i in materiali) materiali[i] = false
-      materiali.brass = true
-      console.log('brass')
+  for (let material in materialData) {
+    gui.add(materiali, material).onFinishChange(value => {
+      if (value === true) {
+        for (let i in materiali) materiali[i] = false
+        materiali[material] = true
+        console.log(material)
 
-      setMaterial(materialData.brass)
-    }
+        setMaterial(materialData[material])
+      }
 
-    // Iterate over all controllers
-    for (let ctrl of gui.__controllers) {
-      ctrl.updateDisplay()
-    }
-  })
-  gui.add(materiali, 'emerald').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
-    if (value == true) {
-      for (let i in materiali) materiali[i] = false
-      materiali.emerald = true
-      console.log('emerald')
-
-      setMaterial(materialData.emerald)
-    }
-
-    // Iterate over all controllers
-    for (let ctrl of gui.__controllers) {
-      ctrl.updateDisplay()
-    }
-  })
-  gui.add(materiali, 'bronze').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
-    if (value == true) {
-      for (let i in materiali) materiali[i] = false
-      materiali.bronze = true
-      console.log('bronze')
-
-      setMaterial(materialData.bronze)
-    }
-
-    // Iterate over all controllers
-    for (let ctrl of gui.__controllers) {
-      ctrl.updateDisplay()
-    }
-  })
-  gui.add(materiali, 'jade').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
-    if (value == true) {
-      for (let i in materiali) materiali[i] = false
-      materiali.jade = true
-      console.log('jade')
-
-      setMaterial(materialData.jade)
-    }
-
-    // Iterate over all controllers
-    for (let ctrl of gui.__controllers) {
-      ctrl.updateDisplay()
-    }
-  })
-  gui.add(materiali, 'gold').onFinishChange(function(value) {
-    // Fires when a controller loses focus.
-    if (value == true) {
-      for (let i in materiali) materiali[i] = false
-      materiali.gold = true
-      console.log('gold')
-
-      setMaterial(materialData.gold)
-    }
-
-    // Iterate over all controllers
-    for (let ctrl of gui.__controllers) {
-      ctrl.updateDisplay()
-    }
-  })
+      // Iterate over all controllers
+      for (let ctrl of gui.__controllers) {
+        ctrl.updateDisplay()
+      }
+    })
+  }
 
   // Forza i checkbox perchè non vengano deselezionati
   // per evitare lo stato in cui nessuno sia selezionato
