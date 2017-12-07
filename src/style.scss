@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    background: #eee;
+    background: #EEE;
     overflow: hidden;
     text-align: center;
     font-family: sans-serif;
@@ -14,8 +14,14 @@ body {
         text-align: left;
         padding: 15px;
         background: rgba(0, 0, 0, 0.7);
-        color: #fFf;
+        color: #EEE;
         border-radius: 5px;
+
+        .radio-model-title {
+            margin: 0 0 10px;
+            font-size: 1.15em;
+            color: #CCC;
+        }
     }
 
     &.redirect {
