@@ -13,44 +13,38 @@ const VSHADER_SOURCE = `
   uniform vec3 u_AmbientLight; // Ambient light color
   uniform vec3 u_DiffuseMat; // Diffuse material color
   uniform vec3 u_SpecularMat; // Specular material color
-  uniform float u_Shininess  ; // Specular material shininess
+  uniform float u_Shininess; // Specular material shininess
   uniform vec3 u_AmbientMat; // Ambient material color
   uniform vec3 u_CameraPos; // Camera Position
-  varying vec4 v_Color;
+
+  varying vec3  v_LightPosition;
+  varying vec3  v_vertexPosition;
+  varying vec3  v_normal;
+  varying vec3  v_LightColor;
+  varying vec3  v_DiffuseMat;
+  varying vec3  v_AmbientLight;
+  varying vec3  v_AmbientMat;
+  varying vec3  v_CameraPos;
+  varying vec3  v_SpecularMat;
+  varying float v_Shininess;
 
   void main() {
+    v_LightPosition = u_LightPosition;
+    v_LightColor = u_LightColor;
+    v_DiffuseMat = u_DiffuseMat;
+    v_AmbientLight = u_AmbientLight;
+    v_AmbientMat = u_AmbientMat;
+    v_CameraPos = u_CameraPos;
+    v_SpecularMat = u_SpecularMat;
+    v_Shininess = u_Shininess;
+
     gl_Position = u_MvpMatrix * a_Position;
 
     // Calculate a normal to be fit with a model matrix, and make it 1.0 in length
-    vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));
+    v_normal = normalize(vec3(u_NormalMatrix * a_Normal));
 
     // Calculate world coordinate of vertex
-    vec4 vertexPosition = u_ModelMatrix * a_Position;
-    float d = length(u_LightPosition - vec3(vertexPosition));
-    float atten = 1.0/(0.01 * d*d);
-
-    // Calculate the light direction and make it 1.0 in length
-    vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));
-
-    // The dot product of the light direction and the normal
-    float nDotL = max(dot(lightDirection, normal), 0.0);
-
-    // Calculate the color due to diffuse reflection
-    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;
-
-    // Calculate the color due to ambient reflection
-    vec3 ambient = u_AmbientLight * u_AmbientMat;
-    vec3 specular = vec3(0.0,0.0,0.0);
-
-    if(nDotL > 0.0) {
-      // Calculate specular component
-      vec3 h = normalize(normalize(u_CameraPos - vec3(vertexPosition)) + lightDirection);
-      float hDotn  = max(dot(h, normal), 0.0);
-      specular = u_LightColor * u_SpecularMat * pow(hDotn,u_Shininess);
-    }
-
-    // Add the surface colors due to diffuse reflection and ambient reflection
-    v_Color = vec4(atten *(diffuse + specular)  + ambient, 1.0);
+    v_vertexPosition = vec3(u_ModelMatrix * a_Position);
   }
 `
 
@@ -59,23 +53,37 @@ const FSHADER_SOURCE = `
   #ifdef GL_ES
   precision mediump float;
   #endif
-  varying vec4 v_Color;
+
+  varying vec3  v_LightPosition;
+  varying vec3  v_vertexPosition;
+  varying vec3  v_normal;
+  varying vec3  v_LightColor;
+  varying vec3  v_DiffuseMat;
+  varying vec3  v_AmbientLight;
+  varying vec3  v_AmbientMat;
+  varying vec3  v_CameraPos;
+  varying vec3  v_SpecularMat;
+  varying float v_Shininess;
+
   void main() {
-    gl_FragColor = v_Color;
+    float d = length(v_LightPosition - v_vertexPosition);
+    float atten = 1.0 / (0.01 * d*d);
+
+    vec3 lightDirection = normalize(v_LightPosition - v_vertexPosition);
+    float nDotL = max(dot(lightDirection, v_normal), 0.0);
+    vec3 diffuse = v_LightColor * v_DiffuseMat * nDotL;
+    vec3 ambient = v_AmbientLight * v_AmbientMat;
+    vec3 specular = vec3(0.0, 0.0, 0.0);
+
+    if (nDotL > 0.0) {
+      vec3 h = normalize(normalize(v_CameraPos - v_vertexPosition) + lightDirection);
+      float hDotn = max(dot(h, v_normal), 0.0);
+      specular = v_LightColor * v_SpecularMat * pow(hDotn, v_Shininess);
+    }
+
+    gl_FragColor = vec4(atten * (diffuse + specular) + ambient, 1.0);
   }
 `
-
-const normalize = v => {
-  let norm = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-
-  if (norm != 0.0) {
-    v[0] /= norm
-    v[1] /= norm
-    v[2] /= norm
-  }
-
-  return v
-}
 
 const cross = (edge1, edge2) => {
   let n = []
