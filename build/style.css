@@ -7,7 +7,7 @@ body {
 }
 body .radio-model {
   position: fixed;
-  top: 5px;
+  bottom: 5px;
   left: 5px;
   font-size: 0.8em;
   font-weight: 300;
@@ -16,5 +16,60 @@ body .radio-model {
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
   border-radius: 5px;
+}
+body.redirect {
+  background: none;
+  padding: 20px;
+}
+body.redirect h1 {
+  font-weight: 300;
+}
+body.redirect .esercizio {
+  width: 50%;
+  padding: 20px;
+}
+body .link-esercizi {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  text-align: center;
+  margin: 40px 0;
+}
+body .link-home {
+  position: fixed;
+  top: 15px;
+  left: 5px;
+}
+body .link-home .esercizio a {
+  display: block;
+}
+body .link-home .esercizio a:before {
+  content: '\2190';
+  display: inline-block;
+}
+body .esercizio a {
+  color: #333;
+  border: 2px solid #333;
+  border-radius: 5px;
+  padding: 10px;
+  text-decoration: none;
+}
+body .esercizio a:hover,
+body .esercizio a:focus {
+  background: rgba(200, 200, 200, 0.25);
+}
+body .esercizio a:hover span,
+body .esercizio a:focus span {
+  border-bottom: 1px solid;
+}
+body .esercizio a:visited,
+body .esercizio a:link {
+  color: #333;
 }
 /*# sourceMappingURL=style.css.map */
