@@ -35,8 +35,6 @@ function _classCallCheck(instance, Constructor) {
 }
 
 // esercizio 1a
-// implementazione modello di blinn phong
-// GDD - 2017
 // Vertex shader program
 var VSHADER_SOURCE =
   '\n  attribute vec4 a_Position;\n  attribute vec4 a_Normal;\n  uniform mat4 u_MvpMatrix;\n  uniform mat4 u_ModelMatrix; // Model matrix\n  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal\n  uniform vec3 u_LightColor; // Light color\n  uniform vec3 u_LightPosition; // Position of the light source\n  uniform vec3 u_AmbientLight; // Ambient light color\n  uniform vec3 u_DiffuseMat; // Diffuse material color\n  uniform vec3 u_SpecularMat; // Specular material color\n  uniform float u_Shininess  ; // Specular material shininess\n  uniform vec3 u_AmbientMat; // Ambient material color\n  uniform vec3 u_CameraPos; // Camera Position\n  varying vec4 v_Color;\n\n  void main() {\n    gl_Position = u_MvpMatrix * a_Position;\n\n    // Calculate a normal to be fit with a model matrix, and make it 1.0 in length\n    vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));\n\n    // Calculate world coordinate of vertex\n    vec4 vertexPosition = u_ModelMatrix * a_Position;\n    float d = length(u_LightPosition - vec3(vertexPosition));\n    float atten = 1.0/(0.01 * d*d);\n\n    // Calculate the light direction and make it 1.0 in length\n    vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));\n\n    // The dot product of the light direction and the normal\n    float nDotL = max(dot(lightDirection, normal), 0.0);\n\n    // Calculate the color due to diffuse reflection\n    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;\n\n    // Calculate the color due to ambient reflection\n    vec3 ambient = u_AmbientLight * u_AmbientMat;\n    vec3 specular = vec3(0.0,0.0,0.0);\n\n    if(nDotL > 0.0) {\n      // Calculate specular component\n      vec3 h = normalize(normalize(u_CameraPos - vec3(vertexPosition)) + lightDirection);\n      float hDotn  = max(dot(h, normal), 0.0);\n      specular = u_LightColor * u_SpecularMat * pow(hDotn,u_Shininess);\n    }\n\n    // Add the surface colors due to diffuse reflection and ambient reflection\n    v_Color = vec4(atten *(diffuse + specular)  + ambient, 1.0);\n  }\n'
@@ -105,6 +103,7 @@ var Cone = (function() {
 
         triangle.map(function(v) {
           var _verticesToDraw
+
           ;(_verticesToDraw = _this.verticesToDraw).push.apply(_verticesToDraw, _toConsumableArray(v))
         })
 
@@ -130,7 +129,9 @@ var Cone = (function() {
     var angleStep = 2 * Math.PI / nDiv
     var centre = [0.0, 0.0, 0.0]
     var top = [0.0, height, 0.0]
+
     ;(_vertices = this.vertices).push.apply(_vertices, centre)
+
     ;(_vertices2 = this.vertices).push.apply(_vertices2, top)
 
     // genero tutti i vertici

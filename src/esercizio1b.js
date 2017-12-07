@@ -1,6 +1,4 @@
 // esercizio 1b
-// implementazione modello di blinn phong
-// GDD - 2017
 // Vertex shader program
 const VSHADER_SOURCE = `
   attribute vec4 a_Position;
