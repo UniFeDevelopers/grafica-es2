@@ -65,86 +65,43 @@ const FSHADER_SOURCE = `
   }
 `
 
-function cross(edge1, edge2) {
-  let n = []
-  /*
-  Nx = UyVz - UzVy
-  Ny = UzVx - UxVz
-  Nz = UxVy - UyVx
-  */
-  n[0] = edge1[1] * edge2[2] - edge1[2] * edge2[1]
-  n[1] = edge1[2] * edge2[0] - edge1[0] * edge2[2]
-  n[2] = edge1[0] * edge2[1] - edge1[1] * edge2[0]
-
-  return n
-}
-
-function normalize(v) {
-  let norm = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-  v[0] /= norm
-  v[1] /= norm
-  v[2] /= norm
-
-  return v
-}
-
-function getNormal(v1, v2, v3) {
-  let edge1 = []
-  edge1[0] = v2[0] - v1[0]
-  edge1[1] = v2[1] - v1[1]
-  edge1[2] = v2[2] - v1[2]
-
-  let edge2 = []
-  edge2[0] = v3[0] - v1[0]
-  edge2[1] = v3[1] - v1[1]
-  edge2[2] = v3[2] - v1[2]
-
-  return cross(edge1, edge2)
-}
-
-class Sphere {
-  constructor(nDiv, radius) {
+class Torus {
+  constructor(nDiv, radius, radiusInner) {
     this.vertices = []
     this.indices = []
     this.normals = []
 
-    // Per disegnare una sfera abbiamo bisogno di nDiv^2 vertici.
-    // Il ciclo for più esterno è quello che itera sull'angolo phi, ossia quello che ci fa passare da
-    // una circonferenza alla sua consecutiva.
+    // I vertici e gli indici del toro vengono calcolati come per la sfera
+    // cambia solamente l'angolo phi che arriva fino a 2 PI
+    // e chiaramente le coordinate dei vertici in funzione della
+    // formula parametrica del toro
+
     for (let j = 0; j <= nDiv; j++) {
-      // L'angolo phi è compresto tra 0 e Pi
-      let phi = j * Math.PI / nDiv
+      let phi = j * 2 * Math.PI / nDiv
 
-      // Il ciclo for più interno è quello che itera sull'angolo theta, ossia quello che ci fa passare da un vertice
-      // al suo successivo sulla stessa circonferenza.
       for (let i = 0; i <= nDiv; i++) {
-        // L'angolo theta è compreso tra 0 e 2 * Pi.
         let theta = i * 2 * Math.PI / nDiv
+        let x = Math.sin(phi) * (radius + radiusInner * Math.cos(theta))
+        let y = Math.cos(phi) * (radius + radiusInner * Math.cos(theta))
+        let z = Math.sin(theta) * radiusInner
 
-        // Il calcolo delle coordinate di un vertice avviene tramite le equazioni parametriche della sfera.
-        let x = Math.cos(phi) * Math.sin(theta)
-        let y = Math.sin(phi) * Math.sin(theta)
-        let z = Math.cos(theta)
+        this.vertices.push(x, y, z)
 
-        this.vertices.push(radius * x, radius * y, radius * z)
-        this.normals.push(x, y, z)
+        let normalex = Math.cos(theta) * Math.cos(phi)
+        let normaley = Math.cos(theta) * Math.sin(phi)
+        let normalez = Math.sin(theta)
+
+        this.normals.push(normalex, normaley, normalez)
       }
     }
 
-    // Inizializzazione degli indici, il significato dei cicli for è sempre lo stesso.
     for (let j = 0; j < nDiv; j++) {
       for (let i = 0; i < nDiv; i++) {
-        // p1 è un punto su di una circonferenza.
         let p1 = j * (nDiv + 1) + i
-        // p2 è il punto sulla circonferenza superiore a quella di p1, nella stessa posizione di p1.
         let p2 = p1 + (nDiv + 1)
 
-        // I punti vanno uniti come nel cilindro per formare dei quadrati.
         this.indices.push(p1, p2, p1 + 1)
         this.indices.push(p1 + 1, p2, p2 + 1)
-
-        // Ho cambiato l'ordine per mettere p2 + 1 come punto centrale del triangolo.
-        this.addNormal(p2 + 1, p2, p1 + 1)
       }
     }
   }
@@ -388,7 +345,7 @@ const main = () => {
     currentAngle = animate(currentAngle) // Update the rotation angle
 
     // Calculate the model matrix
-    modelMatrix.setRotate(currentAngle, 1, 1, 0) // Rotate around the y-axis
+    modelMatrix.setRotate(currentAngle, 1, 0, 0) // Rotate around the y-axis
 
     // Pass the model matrix to u_ModelMatrix
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements)
@@ -416,7 +373,7 @@ const main = () => {
 
 const initVertexBuffersCube = gl => {
   // create the shape
-  const shape = new Sphere(100, 1)
+  const shape = new Torus(200, 1, 0.2)
 
   // Write the vertex property to buffers (coordinates and normals)
   // Same data can be used for vertex and normal
