@@ -413,7 +413,7 @@ const main = () => {
       if (value === true) {
         for (let i in materiali) materiali[i] = false
         materiali[material] = true
-        console.log(material)
+        console.log(`%cMaterial: %c${material}`, 'font-weight: 600', 'font-weight: 400')
 
         setMaterial(materialData[material])
       }

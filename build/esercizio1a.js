@@ -103,7 +103,6 @@ var Cone = (function() {
 
         triangle.map(function(v) {
           var _verticesToDraw
-
           ;(_verticesToDraw = _this.verticesToDraw).push.apply(_verticesToDraw, _toConsumableArray(v))
         })
 
@@ -129,9 +128,7 @@ var Cone = (function() {
     var angleStep = 2 * Math.PI / nDiv
     var centre = [0.0, 0.0, 0.0]
     var top = [0.0, height, 0.0]
-
     ;(_vertices = this.vertices).push.apply(_vertices, centre)
-
     ;(_vertices2 = this.vertices).push.apply(_vertices2, top)
 
     // genero tutti i vertici
@@ -421,7 +418,7 @@ var main = function main() {
           materiali[i] = false
         }
         materiali[_material] = true
-        console.log(_material)
+        console.log('%cMaterial: %c' + _material, 'font-weight: 600', 'font-weight: 400')
 
         setMaterial(materialData[_material])
       }
