@@ -1,50 +1,87 @@
-'use strict'
+// esercizio 2
 
-var _createClass = (function() {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i]
-      descriptor.enumerable = descriptor.enumerable || false
-      descriptor.configurable = true
-      if ('value' in descriptor) descriptor.writable = true
-      Object.defineProperty(target, descriptor.key, descriptor)
-    }
-  }
-  return function(Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps)
-    if (staticProps) defineProperties(Constructor, staticProps)
-    return Constructor
-  }
-})()
-
-function _toConsumableArray(arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
-      arr2[i] = arr[i]
-    }
-    return arr2
-  } else {
-    return Array.from(arr)
-  }
-}
-
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError('Cannot call a class as a function')
-  }
-}
-
-// esercizio 1b
 // Vertex shader program
-var VSHADER_SOURCE =
-  '\n  attribute vec4 a_Position;\n  attribute vec4 a_Normal;\n  uniform mat4 u_MvpMatrix;\n  uniform mat4 u_ModelMatrix; // Model matrix\n  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal\n  uniform vec3 u_LightColor; // Light color\n  uniform vec3 u_LightPosition; // Position of the light source\n  uniform vec3 u_AmbientLight; // Ambient light color\n  uniform vec3 u_DiffuseMat; // Diffuse material color\n  uniform vec3 u_SpecularMat; // Specular material color\n  uniform float u_Shininess; // Specular material shininess\n  uniform vec3 u_AmbientMat; // Ambient material color\n  uniform vec3 u_CameraPos; // Camera Position\n\n  varying vec3  v_LightPosition;\n  varying vec3  v_vertexPosition;\n  varying vec3  v_normal;\n  varying vec3  v_LightColor;\n  varying vec3  v_DiffuseMat;\n  varying vec3  v_AmbientLight;\n  varying vec3  v_AmbientMat;\n  varying vec3  v_CameraPos;\n  varying vec3  v_SpecularMat;\n  varying float v_Shininess;\n\n  void main() {\n    v_LightPosition = u_LightPosition;\n    v_LightColor = u_LightColor;\n    v_DiffuseMat = u_DiffuseMat;\n    v_AmbientLight = u_AmbientLight;\n    v_AmbientMat = u_AmbientMat;\n    v_CameraPos = u_CameraPos;\n    v_SpecularMat = u_SpecularMat;\n    v_Shininess = u_Shininess;\n\n    gl_Position = u_MvpMatrix * a_Position;\n\n    // Calculate a normal to be fit with a model matrix, and make it 1.0 in length\n    v_normal = normalize(vec3(u_NormalMatrix * a_Normal));\n\n    // Calculate world coordinate of vertex\n    v_vertexPosition = vec3(u_ModelMatrix * a_Position);\n  }\n'
+const VSHADER_SOURCE = `
+  attribute vec4 a_Position;
+  attribute vec4 a_Normal;
+  uniform mat4 u_MvpMatrix;
+  uniform mat4 u_ModelMatrix; // Model matrix
+  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal
+
+  varying vec3  v_vertexPosition;
+  varying vec3  v_normal;
+
+  void main() {
+    gl_Position = u_MvpMatrix * a_Position;
+
+    // Calculate a normal to be fit with a model matrix, and make it 1.0 in length
+    v_normal = normalize(vec3(u_NormalMatrix * a_Normal));
+
+    // Calculate world coordinate of vertex
+    v_vertexPosition = vec3(u_ModelMatrix * a_Position);
+  }
+`
 
 // Fragment shader program
-var FSHADER_SOURCE =
-  '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n\n  varying vec3  v_LightPosition;\n  varying vec3  v_vertexPosition;\n  varying vec3  v_normal;\n  varying vec3  v_LightColor;\n  varying vec3  v_DiffuseMat;\n  varying vec3  v_AmbientLight;\n  varying vec3  v_AmbientMat;\n  varying vec3  v_CameraPos;\n  varying vec3  v_SpecularMat;\n  varying float v_Shininess;\n\n  void main() {\n    float d = length(v_LightPosition - v_vertexPosition);\n    float atten = 1.0 / (0.01 * d*d);\n\n    vec3 lightDirection = normalize(v_LightPosition - v_vertexPosition);\n    float nDotL = max(dot(lightDirection, v_normal), 0.0);\n    vec3 diffuse = v_LightColor * v_DiffuseMat * nDotL;\n    vec3 ambient = v_AmbientLight * v_AmbientMat;\n    vec3 specular = vec3(0.0, 0.0, 0.0);\n\n    if (nDotL > 0.0) {\n      vec3 h = normalize(normalize(v_CameraPos - v_vertexPosition) + lightDirection);\n      float hDotn = max(dot(h, v_normal), 0.0);\n      specular = v_LightColor * v_SpecularMat * pow(hDotn, v_Shininess);\n    }\n\n    gl_FragColor = vec4(atten * (diffuse + specular) + ambient, 1.0);\n  }\n'
+const FSHADER_SOURCE = `
+  #ifdef GL_ES
+  precision mediump float;
+  #endif
 
-var cross = function cross(edge1, edge2) {
-  var n = []
+  varying vec3  v_vertexPosition;
+  varying vec3  v_normal;
+
+  uniform vec3  u_LightPosition;
+  uniform vec3  u_LightColor;
+  uniform vec3  u_DiffuseMat;
+  uniform vec3  u_AmbientLight;
+  uniform vec3  u_AmbientMat;
+  uniform vec3  u_CameraPos;
+  uniform vec3  u_SpecularMat;
+  uniform float u_Shininess;
+
+  uniform int u_modelChoice;
+
+  void main() {
+    float ka = 1.0;
+    float ks = 0.5;
+    float kd = 0.5;
+
+    float d = length(u_LightPosition - v_vertexPosition);
+    float atten = 1.0 / (0.01 * d * d);
+
+    vec3 lightDirection = normalize(u_LightPosition - v_vertexPosition);
+    float nDotL = max(dot(lightDirection, v_normal), 0.0);
+    vec3 observerDirection = normalize(u_CameraPos - v_vertexPosition); 
+    vec3 h = normalize(observerDirection + lightDirection);
+    float hDotn = max(dot(h, v_normal), 0.0);
+    vec3 reflectedDirection = reflect(-lightDirection, v_normal);
+    float reflectedDotObserver = max(dot(reflectedDirection, observerDirection), 0.0); 
+    float nDotObserver = max(dot(v_normal, observerDirection), 0.0);
+
+    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;
+    vec3 ambient = u_AmbientLight * u_AmbientMat;
+    vec3 specular = vec3(0.0, 0.0, 0.0);
+
+    if (nDotL > 0.0) {
+      if (u_modelChoice == 0) {       // Phong model
+        specular = u_LightColor * u_SpecularMat * pow(reflectedDotObserver, u_Shininess) / nDotL;
+      }
+      else if (u_modelChoice == 1) {  // Blinn-Phong model
+        specular = u_LightColor * u_SpecularMat * pow(hDotn, u_Shininess);
+      }
+      else if (u_modelChoice == 2) {  // Max-Phong model
+        specular = u_LightColor * u_SpecularMat * pow(reflectedDotObserver, u_Shininess) / max(nDotL, nDotObserver);
+
+      }
+    }
+
+    gl_FragColor = vec4(atten * (kd * diffuse + ks * specular) + ka * ambient, 1.0);
+  }
+`
+
+const cross = (edge1, edge2) => {
+  let n = []
 
   /* 
    * Nx = UyVz - UzVy
@@ -59,13 +96,13 @@ var cross = function cross(edge1, edge2) {
   return n
 }
 
-var getNormal = function getNormal(v1, v2, v3) {
-  var edge1 = []
+const getNormal = (v1, v2, v3) => {
+  let edge1 = []
   edge1[0] = v2[0] - v1[0]
   edge1[1] = v2[1] - v1[1]
   edge1[2] = v2[2] - v1[2]
 
-  var edge2 = []
+  let edge2 = []
   edge2[0] = v3[0] - v1[0]
   edge2[1] = v3[1] - v1[1]
   edge2[2] = v3[2] - v1[2]
@@ -73,88 +110,67 @@ var getNormal = function getNormal(v1, v2, v3) {
   return cross(edge1, edge2)
 }
 
-var Cone = (function() {
-  _createClass(Cone, [
-    {
-      key: 'getVertex',
-      value: function getVertex(idx) {
-        return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
-      },
-    },
-    {
-      key: 'updateNormal',
-      value: function updateNormal(idx1, idx2, idx3) {
-        var _this = this,
-          _normals
+class Cone {
+  getVertex(idx) {
+    return [this.vertices[3 * idx], this.vertices[3 * idx + 1], this.vertices[3 * idx + 2]]
+  }
 
-        var triangle = [this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3)]
+  updateNormal(idx1, idx2, idx3) {
+    let triangle = [this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3)]
 
-        triangle.map(function(v) {
-          var _verticesToDraw
+    triangle.map(v => {
+      this.verticesToDraw.push(...v)
+    })
 
-          ;(_verticesToDraw = _this.verticesToDraw).push.apply(_verticesToDraw, _toConsumableArray(v))
-        })
+    let norm = getNormal(...triangle)
+    this.normals.push(...norm, ...norm, ...norm)
+  }
 
-        var norm = getNormal.apply(undefined, triangle)
-        ;(_normals = this.normals).push.apply(
-          _normals,
-          _toConsumableArray(norm).concat(_toConsumableArray(norm), _toConsumableArray(norm))
-        )
-      },
-    },
-  ])
-
-  function Cone(nDiv, radius, height) {
-    var _vertices, _vertices2
-
-    _classCallCheck(this, Cone)
-
+  constructor(nDiv, radius, height) {
     this.vertices = []
     this.verticesToDraw = []
     this.normals = []
 
-    var numberVertices = nDiv + 2
-    var angleStep = 2 * Math.PI / nDiv
-    var centre = [0.0, 0.0, 0.0]
-    var top = [0.0, height, 0.0]
+    const numberVertices = nDiv + 2
+    const angleStep = 2 * Math.PI / nDiv
+    const centre = [0.0, 0.0, 0.0]
+    const top = [0.0, height, 0.0]
 
-    ;(_vertices = this.vertices).push.apply(_vertices, centre)
+    this.vertices.push(...centre)
 
-    ;(_vertices2 = this.vertices).push.apply(_vertices2, top)
+    this.vertices.push(...top)
 
     // genero tutti i vertici
-    for (var i = 2, angle = 0; i < numberVertices; i++, angle += angleStep) {
-      var x = Math.cos(angle) * radius
-      var z = Math.sin(angle) * radius
-      var y = centre[1]
+    for (let i = 2, angle = 0; i < numberVertices; i++, angle += angleStep) {
+      let x = Math.cos(angle) * radius
+      let z = Math.sin(angle) * radius
+      let y = centre[1]
 
       this.vertices.push(x, y, z)
     }
 
     // Ora dobbiamo calcolare le normali e caricare normali e vertici negli array.
-    for (var _i = 2; _i < numberVertices; _i++) {
-      if (_i < numberVertices - 1) {
+    for (let i = 2; i < numberVertices; i++) {
+      if (i < numberVertices - 1) {
         // Collego il vertice al suo precedente e al top.
-        this.updateNormal(_i + 1, _i, 1)
+        this.updateNormal(i + 1, i, 1)
         // Collego il vertice al suo successivo e al centro basso.
-        this.updateNormal(_i, _i + 1, 0)
+        this.updateNormal(i, i + 1, 0)
       } else {
         // Nel caso sia l'ultimo vertice allora lo collego col primo sulla circonferenza.
-        this.updateNormal(2, _i, 1)
-        this.updateNormal(_i, 2, 0)
+        this.updateNormal(2, i, 1)
+        this.updateNormal(i, 2, 0)
       }
     }
   }
+}
 
-  return Cone
-})()
-
-var main = function main() {
+const main = () => {
   // Retrieve <canvas> element
-  var canvas = document.getElementById('webgl')
+  const canvas = document.getElementById('webgl')
 
   // Get the rendering context for WebGL
-  var gl = getWebGLContext(canvas)
+  const gl = getWebGLContext(canvas)
   if (!gl) {
     console.log('Failed to get the rendering context for WebGL')
     return
@@ -167,7 +183,7 @@ var main = function main() {
   }
 
   // Set the vertex coordinates, the color and the normal
-  var n = initVertexBuffers(gl)
+  const n = initVertexBuffers(gl)
   if (n < 0) {
     console.log('Failed to set the vertex information')
     return
@@ -178,17 +194,18 @@ var main = function main() {
   gl.enable(gl.DEPTH_TEST)
 
   // Get the storage locations of uniform variables and so on
-  var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix')
-  var u_MvpMatrix = gl.getUniformLocation(gl.program, 'u_MvpMatrix')
-  var u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix')
-  var u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor')
-  var u_LightPosition = gl.getUniformLocation(gl.program, 'u_LightPosition')
-  var u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight')
-  var u_DiffuseMat = gl.getUniformLocation(gl.program, 'u_DiffuseMat')
-  var u_SpecularMat = gl.getUniformLocation(gl.program, 'u_SpecularMat')
-  var u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess')
-  var u_AmbientMat = gl.getUniformLocation(gl.program, 'u_AmbientMat')
-  var u_CameraPos = gl.getUniformLocation(gl.program, 'u_CameraPos')
+  const u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix')
+  const u_MvpMatrix = gl.getUniformLocation(gl.program, 'u_MvpMatrix')
+  const u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix')
+  const u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor')
+  const u_LightPosition = gl.getUniformLocation(gl.program, 'u_LightPosition')
+  const u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight')
+  const u_DiffuseMat = gl.getUniformLocation(gl.program, 'u_DiffuseMat')
+  const u_SpecularMat = gl.getUniformLocation(gl.program, 'u_SpecularMat')
+  const u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess')
+  const u_AmbientMat = gl.getUniformLocation(gl.program, 'u_AmbientMat')
+  const u_CameraPos = gl.getUniformLocation(gl.program, 'u_CameraPos')
+  const u_modelChoice = gl.getUniformLocation(gl.program, 'u_modelChoice')
 
   if (
     !u_ModelMatrix ||
@@ -201,7 +218,8 @@ var main = function main() {
     !u_SpecularMat ||
     !u_Shininess ||
     !u_AmbientMat ||
-    !u_CameraPos
+    !u_CameraPos ||
+    !u_modelChoice
   ) {
     console.log('Failed to get the storage location')
     return
@@ -225,19 +243,22 @@ var main = function main() {
   // Set the specular material
   gl.uniform1f(u_Shininess, 0.21794872 * 128)
 
+  // Set used light model
+  gl.uniform1i(u_modelChoice, 0.0)
+
   // camera position
-  var cameraPos = [1, 3, 8]
+  let cameraPos = [1, 3, 8]
 
   // Set the camera position
-  gl.uniform3f.apply(gl, [u_CameraPos].concat(cameraPos))
+  gl.uniform3f(u_CameraPos, ...cameraPos)
 
   //********************************************************************************************
 
   // creo una GUI con dat.gui
-  var gui = new dat.GUI()
+  const gui = new dat.GUI()
 
   // checkbox geometry
-  var materialData = {
+  const materialData = {
     emerald: {
       ambient: [0.0215, 0.1745, 0.0215],
       diffuse: [0.07568, 0.61424, 0.07568],
@@ -384,100 +405,88 @@ var main = function main() {
     },
   }
 
-  var materiali = {}
-  for (var material in materialData) {
+  let materiali = {}
+  for (let material in materialData) {
     materiali[material] = false
   }
   materiali.brass = true
 
-  var setMaterial = function setMaterial(material) {
+  const setMaterial = material => {
     // Set the ambient material
-    gl.uniform3f.apply(gl, [u_AmbientMat].concat(_toConsumableArray(material.ambient)))
+    gl.uniform3f(u_AmbientMat, ...material.ambient)
     // Set the diffuse material
-    gl.uniform3f.apply(gl, [u_DiffuseMat].concat(_toConsumableArray(material.diffuse)))
+    gl.uniform3f(u_DiffuseMat, ...material.diffuse)
     // Set the specular material
-    gl.uniform3f.apply(gl, [u_SpecularMat].concat(_toConsumableArray(material.specular)))
+    gl.uniform3f(u_SpecularMat, ...material.specular)
 
     // Set the specular material
     gl.uniform1f(u_Shininess, material.shiness * 128)
   }
 
-  var _loop = function _loop(_material) {
-    gui.add(materiali, _material).onFinishChange(function(value) {
+  for (let material in materialData) {
+    gui.add(materiali, material).onFinishChange(value => {
       if (value === true) {
-        for (var i in materiali) {
-          materiali[i] = false
-        }
-        materiali[_material] = true
-        console.log(_material)
+        for (let i in materiali) materiali[i] = false
+        materiali[material] = true
+        console.log(`%cMaterial: %c${material}`, 'font-weight: 600', 'font-weight: 400')
 
-        setMaterial(materialData[_material])
+        setMaterial(materialData[material])
       }
 
       // Iterate over all controllers
-      var _iteratorNormalCompletion = true
-      var _didIteratorError = false
-      var _iteratorError = undefined
-
-      try {
-        for (
-          var _iterator = gui.__controllers[Symbol.iterator](), _step;
-          !(_iteratorNormalCompletion = (_step = _iterator.next()).done);
-          _iteratorNormalCompletion = true
-        ) {
-          var ctrl = _step.value
-
-          ctrl.updateDisplay()
-        }
-      } catch (err) {
-        _didIteratorError = true
-        _iteratorError = err
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return()
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError
-          }
-        }
+      for (let ctrl of gui.__controllers) {
+        ctrl.updateDisplay()
       }
     })
   }
 
-  for (var _material in materialData) {
-    _loop(_material)
-  }
-
   // Forza i checkbox perchè non vengano deselezionati
   // per evitare lo stato in cui nessuno sia selezionato
-  document.querySelectorAll('input[type="checkbox"').forEach(function(el) {
-    el.onchange = function(e) {
+  // e, di default, chiudi il menu dei materiali
+  document.querySelectorAll('input[type="checkbox"').forEach(el => {
+    el.onchange = e => {
       if (!e.target.checked) {
         e.target.checked = true
       }
     }
   })
+  document.querySelector('.close-bottom').click()
+
+  document.querySelector('.radio-model').onchange = e => {
+    switch (e.target.value) {
+      case '0':
+        console.log('%cLight model: %cPhong', 'font-weight: 600', 'font-weight: 400')
+        break
+
+      case '1':
+        console.log('%cLight model: %cModified Phong', 'font-weight: 600', 'font-weight: 400')
+        break
+
+      case '2':
+        console.log('%cLight model: %cMax-Phong', 'font-weight: 600', 'font-weight: 400')
+        break
+    }
+    gl.uniform1i(u_modelChoice, parseFloat(e.target.value))
+  }
 
   //*********************************************************************************
 
-  var currentAngle = 0.0 // Current rotation angle
-  var vpMatrix = new Matrix4() // View projection matrix
+  let currentAngle = 0.0 // Current rotation angle
+  let vpMatrix = new Matrix4() // View projection matrix
 
   // Calculate the view projection matrix
   vpMatrix.setPerspective(30, canvas.width / canvas.height, 1, 100)
-  vpMatrix.lookAt(cameraPos[0], cameraPos[1], cameraPos[2], 0, 0, 0, 0, 1, 0)
+  vpMatrix.lookAt(...cameraPos, 0, 0, 0, 0, 1, 0)
 
-  var modelMatrix = new Matrix4() // Model matrix
-  var mvpMatrix = new Matrix4() // Model view projection matrix
-  var normalMatrix = new Matrix4() // Transformation matrix for normals
+  let modelMatrix = new Matrix4() // Model matrix
+  let mvpMatrix = new Matrix4() // Model view projection matrix
+  let normalMatrix = new Matrix4() // Transformation matrix for normals
 
-  var tick = function tick() {
+  const tick = () => {
     currentAngle = animate(currentAngle) // Update the rotation angle
 
     // Calculate the model matrix
-    modelMatrix.setRotate(currentAngle, 5, 1, 2) // Rotate around the y-axis
+    modelMatrix.setRotate(currentAngle, 0.5, 1, 0) // Rotate around the y-axis
 
     // Pass the model matrix to u_ModelMatrix
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements)
@@ -503,9 +512,9 @@ var main = function main() {
   tick()
 }
 
-var initVertexBuffers = function initVertexBuffers(gl) {
+const initVertexBuffers = gl => {
   // create the shape
-  var shape = new Cone(400, 1, 2)
+  const shape = new Cone(400, 1, 2)
 
   // Write the vertex property to buffers (coordinates and normals)
   // Same data can be used for vertex and normal
@@ -516,9 +525,9 @@ var initVertexBuffers = function initVertexBuffers(gl) {
   return shape.verticesToDraw.length / 3
 }
 
-var initArrayBuffer = function initArrayBuffer(gl, attribute, data, type, num) {
+const initArrayBuffer = (gl, attribute, data, type, num) => {
   // Create a buffer object
-  var buffer = gl.createBuffer()
+  const buffer = gl.createBuffer()
   if (!buffer) {
     console.log('Failed to create the buffer object')
     return false
@@ -529,7 +538,7 @@ var initArrayBuffer = function initArrayBuffer(gl, attribute, data, type, num) {
   gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW)
 
   // Assign the buffer object to the attribute variable
-  var a_attribute = gl.getAttribLocation(gl.program, attribute)
+  const a_attribute = gl.getAttribLocation(gl.program, attribute)
   if (a_attribute < 0) {
     console.log('Failed to get the storage location of ' + attribute)
     return false
@@ -544,18 +553,18 @@ var initArrayBuffer = function initArrayBuffer(gl, attribute, data, type, num) {
 }
 
 // Rotation angle (degrees/second)
-var ANGLE_STEP = 20.0
+const ANGLE_STEP = 20.0
 
 // Last time that this function was called
-var g_last = Date.now()
+let g_last = Date.now()
 function animate(angle) {
   // Calculate the elapsed time
-  var now = Date.now()
-  var elapsed = now - g_last
+  let now = Date.now()
+  let elapsed = now - g_last
   g_last = now
 
   // Update the current rotation angle (adjusted by the elapsed time)
-  var newAngle = angle + ANGLE_STEP * elapsed / 1000.0
+  let newAngle = angle + ANGLE_STEP * elapsed / 1000.0
   return (newAngle %= 360)
 }
 

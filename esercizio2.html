@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>Esercitazione 2 - Esercizio 1a</title>
+        <title>Esercitazione 2 - Esercizio 2</title>
         <link rel="stylesheet" href="build/style.css">
     </head>
 
@@ -19,11 +19,27 @@
             </div>
         </div>
 
+        <div class="radio-model">
+            <p class="radio-model-title">Select reflection model</p>
+            <div class="radio-button">
+                <input id="phong" type="radio" value="0" name="light-model" checked />
+                <label for="phong">Phong model</label>
+            </div>
+            <div class="radio-button">
+                <input id="mod-phong" type="radio" value="1" name="light-model" />
+                <label for="mod-phong">Modified Phong model</label>
+            </div>
+            <div class="radio-button">
+                <input id="max-phong" type="radio" value="2" name="light-model" />
+                <label for="max-phong">Max-Phong model</label>
+            </div>
+        </div>
+
         <script type="text/javascript" src="./lib/webgl-utils.js"></script>
         <script type="text/javascript" src="./lib/webgl-debug.js"></script>
         <script type="text/javascript" src="./lib/cuon-utils.js"></script>
         <script type="text/javascript" src="./lib/cuon-matrix.js"></script>
         <script type="text/javascript" src="./lib/dat.gui.js"></script>
-        <script type="text/javascript" src="src/esercizio1a.js"></script>
+        <script type="text/javascript" src="src/esercizio2.js"></script>
     </body>
 </html>
