@@ -4,38 +4,13 @@ const VSHADER_SOURCE = `
   attribute vec4 a_Position;
   attribute vec4 a_Normal;
   uniform mat4 u_MvpMatrix;
-  uniform mat4 u_ModelMatrix; // Model matrix
-  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal
-  uniform vec3 u_LightColor; // Light color
-  uniform vec3 u_LightPosition; // Position of the light source
-  uniform vec3 u_AmbientLight; // Ambient light color
-  uniform vec3 u_DiffuseMat; // Diffuse material color
-  uniform vec3 u_SpecularMat; // Specular material color
-  uniform float u_Shininess; // Specular material shininess
-  uniform vec3 u_AmbientMat; // Ambient material color
-  uniform vec3 u_CameraPos; // Camera Position
+  uniform mat4 u_ModelMatrix;
+  uniform mat4 u_NormalMatrix;
 
-  varying vec3  v_LightPosition;
   varying vec3  v_vertexPosition;
   varying vec3  v_normal;
-  varying vec3  v_LightColor;
-  varying vec3  v_DiffuseMat;
-  varying vec3  v_AmbientLight;
-  varying vec3  v_AmbientMat;
-  varying vec3  v_CameraPos;
-  varying vec3  v_SpecularMat;
-  varying float v_Shininess;
 
   void main() {
-    v_LightPosition = u_LightPosition;
-    v_LightColor = u_LightColor;
-    v_DiffuseMat = u_DiffuseMat;
-    v_AmbientLight = u_AmbientLight;
-    v_AmbientMat = u_AmbientMat;
-    v_CameraPos = u_CameraPos;
-    v_SpecularMat = u_SpecularMat;
-    v_Shininess = u_Shininess;
-
     gl_Position = u_MvpMatrix * a_Position;
 
     // Calculate a normal to be fit with a model matrix, and make it 1.0 in length
@@ -52,31 +27,43 @@ const FSHADER_SOURCE = `
   precision mediump float;
   #endif
 
-  varying vec3  v_LightPosition;
   varying vec3  v_vertexPosition;
   varying vec3  v_normal;
-  varying vec3  v_LightColor;
-  varying vec3  v_DiffuseMat;
-  varying vec3  v_AmbientLight;
-  varying vec3  v_AmbientMat;
-  varying vec3  v_CameraPos;
-  varying vec3  v_SpecularMat;
-  varying float v_Shininess;
+
+  uniform vec3  u_LightPosition;
+  uniform vec3  u_LightColor;
+  uniform vec3  u_DiffuseMat;
+  uniform vec3  u_AmbientLight;
+  uniform vec3  u_AmbientMat;
+  uniform vec3  u_CameraPos;
+  uniform vec3  u_SpecularMat;
+  uniform float u_Shininess;
+
+  // varying vec3  v_LightPosition;
+  // varying vec3  v_vertexPosition;
+  // varying vec3  v_normal;
+  // varying vec3  v_LightColor;
+  // varying vec3  v_DiffuseMat;
+  // varying vec3  v_AmbientLight;
+  // varying vec3  v_AmbientMat;
+  // varying vec3  v_CameraPos;
+  // varying vec3  v_SpecularMat;
+  // varying float v_Shininess;
 
   void main() {
-    float d = length(v_LightPosition - v_vertexPosition);
+    float d = length(u_LightPosition - v_vertexPosition);
     float atten = 1.0 / (0.01 * d*d);
 
-    vec3 lightDirection = normalize(v_LightPosition - v_vertexPosition);
+    vec3 lightDirection = normalize(u_LightPosition - v_vertexPosition);
     float nDotL = max(dot(lightDirection, v_normal), 0.0);
-    vec3 diffuse = v_LightColor * v_DiffuseMat * nDotL;
-    vec3 ambient = v_AmbientLight * v_AmbientMat;
+    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;
+    vec3 ambient = u_AmbientLight * u_AmbientMat;
     vec3 specular = vec3(0.0, 0.0, 0.0);
 
     if (nDotL > 0.0) {
-      vec3 h = normalize(normalize(v_CameraPos - v_vertexPosition) + lightDirection);
+      vec3 h = normalize(normalize(u_CameraPos - v_vertexPosition) + lightDirection);
       float hDotn = max(dot(h, v_normal), 0.0);
-      specular = v_LightColor * v_SpecularMat * pow(hDotn, v_Shininess);
+      specular = u_LightColor * u_SpecularMat * pow(hDotn, u_Shininess);
     }
 
     gl_FragColor = vec4(atten * (diffuse + specular) + ambient, 1.0);

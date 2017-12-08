@@ -5,8 +5,8 @@ const VSHADER_SOURCE = `
   attribute vec4 a_Position;
   attribute vec4 a_Normal;
   uniform mat4 u_MvpMatrix;
-  uniform mat4 u_ModelMatrix; // Model matrix
-  uniform mat4 u_NormalMatrix; // Transformation matrix of the normal
+  uniform mat4 u_ModelMatrix;
+  uniform mat4 u_NormalMatrix;
 
   varying vec3  v_vertexPosition;
   varying vec3  v_normal;
