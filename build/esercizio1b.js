@@ -41,7 +41,7 @@ var VSHADER_SOURCE =
 
 // Fragment shader program
 var FSHADER_SOURCE =
-  '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n\n  varying vec3  v_vertexPosition;\n  varying vec3  v_normal;\n\n  uniform vec3  u_LightPosition;\n  uniform vec3  u_LightColor;\n  uniform vec3  u_DiffuseMat;\n  uniform vec3  u_AmbientLight;\n  uniform vec3  u_AmbientMat;\n  uniform vec3  u_CameraPos;\n  uniform vec3  u_SpecularMat;\n  uniform float u_Shininess;\n\n  // varying vec3  v_LightPosition;\n  // varying vec3  v_vertexPosition;\n  // varying vec3  v_normal;\n  // varying vec3  v_LightColor;\n  // varying vec3  v_DiffuseMat;\n  // varying vec3  v_AmbientLight;\n  // varying vec3  v_AmbientMat;\n  // varying vec3  v_CameraPos;\n  // varying vec3  v_SpecularMat;\n  // varying float v_Shininess;\n\n  void main() {\n    float d = length(u_LightPosition - v_vertexPosition);\n    float atten = 1.0 / (0.01 * d*d);\n\n    vec3 lightDirection = normalize(u_LightPosition - v_vertexPosition);\n    float nDotL = max(dot(lightDirection, v_normal), 0.0);\n    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;\n    vec3 ambient = u_AmbientLight * u_AmbientMat;\n    vec3 specular = vec3(0.0, 0.0, 0.0);\n\n    if (nDotL > 0.0) {\n      vec3 h = normalize(normalize(u_CameraPos - v_vertexPosition) + lightDirection);\n      float hDotn = max(dot(h, v_normal), 0.0);\n      specular = u_LightColor * u_SpecularMat * pow(hDotn, u_Shininess);\n    }\n\n    gl_FragColor = vec4(atten * (diffuse + specular) + ambient, 1.0);\n  }\n'
+  '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n\n  varying vec3  v_vertexPosition;\n  varying vec3  v_normal;\n\n  uniform vec3  u_LightPosition;\n  uniform vec3  u_LightColor;\n  uniform vec3  u_DiffuseMat;\n  uniform vec3  u_AmbientLight;\n  uniform vec3  u_AmbientMat;\n  uniform vec3  u_CameraPos;\n  uniform vec3  u_SpecularMat;\n  uniform float u_Shininess;\n\n  void main() {\n    float d = length(u_LightPosition - v_vertexPosition);\n    float atten = 1.0 / (0.01 * d*d);\n\n    vec3 lightDirection = normalize(u_LightPosition - v_vertexPosition);\n    float nDotL = max(dot(lightDirection, v_normal), 0.0);\n    vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;\n    vec3 ambient = u_AmbientLight * u_AmbientMat;\n    vec3 specular = vec3(0.0, 0.0, 0.0);\n\n    if (nDotL > 0.0) {\n      vec3 h = normalize(normalize(u_CameraPos - v_vertexPosition) + lightDirection);\n      float hDotn = max(dot(h, v_normal), 0.0);\n      specular = u_LightColor * u_SpecularMat * pow(hDotn, u_Shininess);\n    }\n\n    gl_FragColor = vec4(atten * (diffuse + specular) + ambient, 1.0);\n  }\n'
 
 var cross = function cross(edge1, edge2) {
   var n = []
@@ -87,14 +87,19 @@ var Cone = (function() {
         var _this = this,
           _normals
 
+        // passati 3 indici di vertici appartenenti ad un triangolo
         var triangle = [this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3)]
 
+        // si caricano i tre vertici nel buffer dei vertici da disegnare
         triangle.map(function(v) {
           var _verticesToDraw
           ;(_verticesToDraw = _this.verticesToDraw).push.apply(_verticesToDraw, _toConsumableArray(v))
         })
 
+        // per poi calcolare la normale del triangolo
         var norm = getNormal.apply(undefined, triangle)
+
+        // e si carica la normale per ogni vertice di tale triangolo
         ;(_normals = this.normals).push.apply(
           _normals,
           _toConsumableArray(norm).concat(_toConsumableArray(norm), _toConsumableArray(norm))
@@ -108,8 +113,8 @@ var Cone = (function() {
 
     _classCallCheck(this, Cone)
 
-    this.vertices = []
-    this.verticesToDraw = []
+    this.vertices = [] // array di supporto per calcolare i vertici
+    this.verticesToDraw = [] // vertici da disegnare
     this.normals = []
 
     var numberVertices = nDiv + 2

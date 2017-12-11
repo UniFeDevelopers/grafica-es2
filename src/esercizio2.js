@@ -40,7 +40,7 @@ const FSHADER_SOURCE = `
   uniform vec3  u_SpecularMat;
   uniform float u_Shininess;
 
-  uniform int u_modelChoice;
+  uniform int u_modelChoice;  // intero per scegliere quale modello applicare
 
   void main() {
     float ka = 1.0;
@@ -51,26 +51,29 @@ const FSHADER_SOURCE = `
     float atten = 1.0 / (0.01 * d * d);
 
     vec3 lightDirection = normalize(u_LightPosition - v_vertexPosition);
-    float nDotL = max(dot(lightDirection, v_normal), 0.0);
-    vec3 observerDirection = normalize(u_CameraPos - v_vertexPosition); 
-    vec3 h = normalize(observerDirection + lightDirection);
-    float hDotn = max(dot(h, v_normal), 0.0);
-    vec3 reflectedDirection = reflect(-lightDirection, v_normal);
-    float reflectedDotObserver = max(dot(reflectedDirection, observerDirection), 0.0); 
-    float nDotObserver = max(dot(v_normal, observerDirection), 0.0);
+    float nDotL = max(dot(lightDirection, v_normal), 0.0);                              // angolo tra la normale e la direzione della luce
+    vec3 observerDirection = normalize(u_CameraPos - v_vertexPosition);                 // direzione dell'osservatore 
+    vec3 h = normalize(observerDirection + lightDirection);                             // vettore intermedio
+    float hDotn = max(dot(h, v_normal), 0.0);                                           // angolo tra il vettore intermedio e la normale
+    vec3 reflectedDirection = reflect(-lightDirection, v_normal);                       // direzione della luce riflessa
+    float reflectedDotObserver = max(dot(reflectedDirection, observerDirection), 0.0);  // angolo tra la direzione della luce riflessa e la direzione dell'osservatore
+    float nDotObserver = max(dot(v_normal, observerDirection), 0.0);                    // angolo tra la normale e la direzione dell'osservatore
 
     vec3 diffuse = u_LightColor * u_DiffuseMat * nDotL;
     vec3 ambient = u_AmbientLight * u_AmbientMat;
     vec3 specular = vec3(0.0, 0.0, 0.0);
 
     if (nDotL > 0.0) {
-      if (u_modelChoice == 0) {       // Phong model
+      if (u_modelChoice == 0) {
+        // Phong model
         specular = u_LightColor * u_SpecularMat * pow(reflectedDotObserver, u_Shininess) / nDotL;
       }
-      else if (u_modelChoice == 1) {  // Blinn-Phong model
+      else if (u_modelChoice == 1) {
+        // Blinn-Phong model
         specular = u_LightColor * u_SpecularMat * pow(hDotn, u_Shininess);
       }
-      else if (u_modelChoice == 2) {  // Max-Phong model
+      else if (u_modelChoice == 2) { 
+        // Max-Phong model
         specular = u_LightColor * u_SpecularMat * pow(reflectedDotObserver, u_Shininess) / max(nDotL, nDotObserver);
 
       }
@@ -116,19 +119,24 @@ class Cone {
   }
 
   updateNormal(idx1, idx2, idx3) {
+    // passati 3 indici di vertici appartenenti ad un triangolo
     let triangle = [this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3)]
 
+    // si caricano i tre vertici nel buffer dei vertici da disegnare
     triangle.map(v => {
       this.verticesToDraw.push(...v)
     })
 
+    // per poi calcolare la normale del triangolo
     let norm = getNormal(...triangle)
+
+    // e si carica la normale per ogni vertice di tale triangolo
     this.normals.push(...norm, ...norm, ...norm)
   }
 
   constructor(nDiv, radius, height) {
-    this.vertices = []
-    this.verticesToDraw = []
+    this.vertices = [] // array di supporto per calcolare i vertici
+    this.verticesToDraw = [] // vertici da disegnare
     this.normals = []
 
     const numberVertices = nDiv + 2

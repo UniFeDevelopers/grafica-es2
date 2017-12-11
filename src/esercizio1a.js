@@ -63,18 +63,6 @@ const FSHADER_SOURCE = `
   }
 `
 
-const normalize = v => {
-  let norm = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-
-  if (norm != 0.0) {
-    v[0] /= norm
-    v[1] /= norm
-    v[2] /= norm
-  }
-
-  return v
-}
-
 const cross = (edge1, edge2) => {
   let n = []
 
@@ -111,19 +99,24 @@ class Cone {
   }
 
   updateNormal(idx1, idx2, idx3) {
+    // passati 3 indici di vertici appartenenti ad un triangolo
     let triangle = [this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3)]
 
+    // si caricano i tre vertici nel buffer dei vertici da disegnare
     triangle.map(v => {
       this.verticesToDraw.push(...v)
     })
 
+    // per poi calcolare la normale del triangolo
     let norm = getNormal(...triangle)
+
+    // e si carica la normale per ogni vertice di tale triangolo
     this.normals.push(...norm, ...norm, ...norm)
   }
 
   constructor(nDiv, radius, height) {
-    this.vertices = []
-    this.verticesToDraw = []
+    this.vertices = [] // array di supporto per calcolare i vertici
+    this.verticesToDraw = [] // vertici da disegnare
     this.normals = []
 
     const numberVertices = nDiv + 2
@@ -132,7 +125,6 @@ class Cone {
     const top = [0.0, height, 0.0]
 
     this.vertices.push(...centre)
-
     this.vertices.push(...top)
 
     // genero tutti i vertici

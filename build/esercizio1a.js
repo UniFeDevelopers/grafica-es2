@@ -43,18 +43,6 @@ var VSHADER_SOURCE =
 var FSHADER_SOURCE =
   '\n  #ifdef GL_ES\n  precision mediump float;\n  #endif\n  varying vec4 v_Color;\n  void main() {\n    gl_FragColor = v_Color;\n  }\n'
 
-var normalize = function normalize(v) {
-  var norm = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-
-  if (norm != 0.0) {
-    v[0] /= norm
-    v[1] /= norm
-    v[2] /= norm
-  }
-
-  return v
-}
-
 var cross = function cross(edge1, edge2) {
   var n = []
 
@@ -99,14 +87,19 @@ var Cone = (function() {
         var _this = this,
           _normals
 
+        // passati 3 indici di vertici appartenenti ad un triangolo
         var triangle = [this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3)]
 
+        // si caricano i tre vertici nel buffer dei vertici da disegnare
         triangle.map(function(v) {
           var _verticesToDraw
           ;(_verticesToDraw = _this.verticesToDraw).push.apply(_verticesToDraw, _toConsumableArray(v))
         })
 
+        // per poi calcolare la normale del triangolo
         var norm = getNormal.apply(undefined, triangle)
+
+        // e si carica la normale per ogni vertice di tale triangolo
         ;(_normals = this.normals).push.apply(
           _normals,
           _toConsumableArray(norm).concat(_toConsumableArray(norm), _toConsumableArray(norm))
@@ -120,8 +113,8 @@ var Cone = (function() {
 
     _classCallCheck(this, Cone)
 
-    this.vertices = []
-    this.verticesToDraw = []
+    this.vertices = [] // array di supporto per calcolare i vertici
+    this.verticesToDraw = [] // vertici da disegnare
     this.normals = []
 
     var numberVertices = nDiv + 2

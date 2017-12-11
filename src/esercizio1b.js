@@ -39,17 +39,6 @@ const FSHADER_SOURCE = `
   uniform vec3  u_SpecularMat;
   uniform float u_Shininess;
 
-  // varying vec3  v_LightPosition;
-  // varying vec3  v_vertexPosition;
-  // varying vec3  v_normal;
-  // varying vec3  v_LightColor;
-  // varying vec3  v_DiffuseMat;
-  // varying vec3  v_AmbientLight;
-  // varying vec3  v_AmbientMat;
-  // varying vec3  v_CameraPos;
-  // varying vec3  v_SpecularMat;
-  // varying float v_Shininess;
-
   void main() {
     float d = length(u_LightPosition - v_vertexPosition);
     float atten = 1.0 / (0.01 * d*d);
@@ -106,19 +95,24 @@ class Cone {
   }
 
   updateNormal(idx1, idx2, idx3) {
+    // passati 3 indici di vertici appartenenti ad un triangolo
     let triangle = [this.getVertex(idx1), this.getVertex(idx2), this.getVertex(idx3)]
 
+    // si caricano i tre vertici nel buffer dei vertici da disegnare
     triangle.map(v => {
       this.verticesToDraw.push(...v)
     })
 
+    // per poi calcolare la normale del triangolo
     let norm = getNormal(...triangle)
+
+    // e si carica la normale per ogni vertice di tale triangolo
     this.normals.push(...norm, ...norm, ...norm)
   }
 
   constructor(nDiv, radius, height) {
-    this.vertices = []
-    this.verticesToDraw = []
+    this.vertices = [] // array di supporto per calcolare i vertici
+    this.verticesToDraw = [] // vertici da disegnare
     this.normals = []
 
     const numberVertices = nDiv + 2
