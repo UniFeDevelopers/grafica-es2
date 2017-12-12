@@ -47,9 +47,6 @@ const FSHADER_SOURCE = `
     float ks = 0.5;
     float kd = 0.5;
 
-    float d = length(u_LightPosition - v_vertexPosition);
-    float atten = 1.0 / (0.01 * d * d);
-
     vec3 lightDirection = normalize(u_LightPosition - v_vertexPosition);
     float nDotL = max(dot(lightDirection, v_normal), 0.0);                              // angolo tra la normale e la direzione della luce
     vec3 observerDirection = normalize(u_CameraPos - v_vertexPosition);                 // direzione dell'osservatore 
@@ -79,7 +76,7 @@ const FSHADER_SOURCE = `
       }
     }
 
-    gl_FragColor = vec4(atten * (kd * diffuse + ks * specular) + ka * ambient, 1.0);
+    gl_FragColor = vec4(kd * diffuse + ks * specular + ka * ambient, 1.0);
   }
 `
 
